@@ -1,0 +1,10 @@
+{
+  "exclude": ["temp/**/*", "node_modules/**/*"],
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "no-console": false
+  },
+  "rulesDirectory": []
+}
