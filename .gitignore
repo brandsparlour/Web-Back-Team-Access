@@ -6,4 +6,5 @@ logs
 .DS_Store
 *.pem
 .env
+yarn.lock
 temp/ap-*/
