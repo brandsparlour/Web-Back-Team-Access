@@ -4,6 +4,7 @@ CREATE TABLE Companies (
     company_name VARCHAR(255) NOT NULL,
     address VARCHAR(255),
     contact VARCHAR(50),
+    logo VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -11,12 +12,12 @@ CREATE TABLE Companies (
 -- Users table
 CREATE TABLE Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT,
+    company_id INT NOT NULL,
     user_type ENUM('Admin', 'Customer') NOT NULL,
     role ENUM('Manager', 'Employee', 'HR', 'Market Manager', 'Intern (Event Organizer)', 'Intern (Social Influencer)', 'Affiliate'),
     full_name VARCHAR(255) NOT NULL,
-    mobile_number VARCHAR(15),
-    email VARCHAR(255) UNIQUE NOT NULL,
+    mobile_number VARCHAR(15) UNIQUE NOT NULL,
+    email VARCHAR(255) ,
     password VARCHAR(255) NOT NULL,
     dob DATE,
     profile_image VARCHAR(255),
@@ -32,7 +33,7 @@ CREATE TABLE Users (
 -- internAffiliateLinks table
 CREATE TABLE internAffiliateLinks (
     link_id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT,
+    company_id INT NOT NULL,
     created_by INT,
     job_details TEXT,
     link VARCHAR(255) UNIQUE NOT NULL,
@@ -47,6 +48,7 @@ CREATE TABLE internAffiliateLinks (
 CREATE TABLE Internships (
     internship_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
+    company_id INT NOT NULL,
     link_id INT,
     intern_type ENUM('Organizer', 'Influencer'),
     course VARCHAR(255),
@@ -60,14 +62,15 @@ CREATE TABLE Internships (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (link_id) REFERENCES internAffiliateLinks(link_id)
+    FOREIGN KEY (link_id) REFERENCES internAffiliateLinks(link_id),
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
 -- Jobs table
 CREATE TABLE Jobs (
     job_id INT AUTO_INCREMENT PRIMARY KEY,
     job_title VARCHAR(255) NOT NULL,
-    company VARCHAR(255),
+    company_id INT NOT NULL,
     location VARCHAR(255),
     description TEXT,
     salary VARCHAR(255),
@@ -80,24 +83,28 @@ CREATE TABLE Jobs (
     posted_date DATE,
     application_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
 -- Vacancies table
 CREATE TABLE Vacancies (
     vacancy_id INT AUTO_INCREMENT PRIMARY KEY,
     job_id INT,
+    company_id INT NOT NULL,
     number_of_positions INT,
     status ENUM('Open', 'Closed'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (job_id) REFERENCES Jobs(job_id)
+    FOREIGN KEY (job_id) REFERENCES Jobs(job_id),
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
 -- Applications table
 CREATE TABLE Applications (
     application_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
+    company_id INT NOT NULL,
     position_id INT,
     qualification VARCHAR(255),
     experience INT,
@@ -105,12 +112,14 @@ CREATE TABLE Applications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (position_id) REFERENCES Vacancies(vacancy_id)
+    FOREIGN KEY (position_id) REFERENCES Vacancies(vacancy_id),
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
 -- Events table
 CREATE TABLE Events (
     event_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     event_name VARCHAR(255) NOT NULL,
     description TEXT,
     event_date DATE NOT NULL,
@@ -127,13 +136,15 @@ CREATE TABLE Events (
     status ENUM('Upcoming', 'Past', 'Cancelled'),
     registration_status ENUM('Open', 'Closed'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
 -- EventParticipants table
 CREATE TABLE EventParticipants (
     participant_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT,
+    company_id INT NOT NULL,
     user_id INT,
     name VARCHAR(255),
     email VARCHAR(255),
@@ -147,7 +158,8 @@ CREATE TABLE EventParticipants (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES Events(event_id),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
 -- Products table

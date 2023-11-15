@@ -14,6 +14,12 @@ import logger from "./utils/logger";
 dotenv.config();
 
 import healthcheck from "./routes/healthcheck";
+import user from "./routes/user";
+import event from "./routes/event";
+import job from "./routes/job";
+import vacancy from "./routes/vacancy";
+import company from "./routes/company";
+import internAffiliateLink from "./routes/intern-affiliates-link";
 
 // In case of production environment, disable console logs
 if (process.env.NODE_ENV === "production") {
@@ -63,6 +69,12 @@ app.use(
 );
 
 app.use("/healthcheck", healthcheck);
+app.use("/user", user);
+app.use("/event", event);
+app.use("/job", job);
+app.use("/vacancy", vacancy);
+app.use("/company", company);
+app.use("/intern-affiliate-link",internAffiliateLink)
 
 // Express error middleware
 app.use(error);
