@@ -8,6 +8,7 @@ export const addEvent = async (data: ICreateEvent): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
     const eventData = {
+      company_id: data.company_id,
       event_name: data.event_name,
       description: data.description,
       event_date: data.event_date,
@@ -18,11 +19,12 @@ export const addEvent = async (data: ICreateEvent): Promise<Result> => {
       organizer: data.organizer,
       contact_info: data.contact_info,
       registration_link: data.registration_link,
-      ticket_price: data.ticket_price,
+      registration_fee: data.registration_fee,
       event_capacity: data.event_capacity,
       event_image: data.event_image,
       status: data.status,
       registration_status: data.registration_status,
+      payment_type: data.payment_type ?? "PAID",
     };
     const [results] = await query("INSERT INTO Events SET ?", eventData);
 

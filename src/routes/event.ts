@@ -21,11 +21,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       organizer,
       contact_info,
       registration_link,
-      ticket_price,
+      registration_fee,
       event_capacity,
       event_image,
       status,
       registration_status,
+      payment_type,
     } = req.body;
 
     // validate request body
@@ -43,7 +44,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       company_id,
       event_name,
       description,
-      event_date,
+      event_date: new Date(event_date),
       start_time,
       end_time,
       location,
@@ -51,11 +52,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       organizer,
       contact_info,
       registration_link,
-      ticket_price,
+      registration_fee,
       event_capacity,
       event_image,
       status,
       registration_status,
+      payment_type,
     };
 
     // controller call to save user details
@@ -93,7 +95,10 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
 
 router.get("/:startDate/:endDate", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isEventExists: Result<IEventDetails[]> = await eventController.retrieveEventsByGivenDateRange(new Date(req.params.startDate), new Date(req.params.endDate));
+    const isEventExists: Result<IEventDetails[]> = await eventController.retrieveEventsByGivenDateRange(
+      new Date(req.params.startDate),
+      new Date(req.params.endDate),
+    );
     if (isEventExists.isError()) {
       throw isEventExists.error;
     }
@@ -110,7 +115,10 @@ router.get("/:startDate/:endDate", async (req: Request, res: Response, next: Nex
 
 router.get("/events-by-month-year/:year/:month", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isEventExists: Result<IEventDetails[]> = await eventController.retrieveEventsByGivenMonthAndYear(parseInt(req.params.month), parseInt(req.params.year));
+    const isEventExists: Result<IEventDetails[]> = await eventController.retrieveEventsByGivenMonthAndYear(
+      parseInt(req.params.month),
+      parseInt(req.params.year),
+    );
     if (isEventExists.isError()) {
       throw isEventExists.error;
     }
@@ -127,7 +135,10 @@ router.get("/events-by-month-year/:year/:month", async (req: Request, res: Respo
 
 router.delete("/:event_id/:company_id", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isEventExists: Result<IEventDetails[]> = await eventController.deleteEventById(parseInt(req.params.event_id), parseInt(req.params.company_id));
+    const isEventExists: Result<IEventDetails[]> = await eventController.deleteEventById(
+      parseInt(req.params.event_id),
+      parseInt(req.params.company_id),
+    );
     if (isEventExists.isError()) {
       throw isEventExists.error;
     }
@@ -135,7 +146,6 @@ router.delete("/:event_id/:company_id", async (req: Request, res: Response, next
     res.status(STATUS.OK).json({
       status: STATUS.OK,
       message: isEventExists.data,
-     
     });
   } catch (error) {
     next(error);
