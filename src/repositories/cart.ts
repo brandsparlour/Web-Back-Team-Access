@@ -7,7 +7,7 @@ import { ICartDetail, ICreateCart } from "../interfaces/cart";
 export const addCart = async (data: ICreateCart): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const [results] = await query("INSERT INTO Cart SET ?", data);
+    const [results] = await query(connection, "INSERT INTO Cart SET ?", data);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -22,7 +22,7 @@ export const addCart = async (data: ICreateCart): Promise<Result> => {
 export const retrieveCart = async (): Promise<Result<ICartDetail[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: ICartDetail[] = await query("SELECT * from Cart");
+    const result: ICartDetail[] = await query(connection, "SELECT * from Cart");
 
     return Result.ok(result);
   } catch (err) {
@@ -37,7 +37,7 @@ export const retrieveCart = async (): Promise<Result<ICartDetail[]>> => {
 export const retrieveCartByCustomerId = async (customerId: number): Promise<Result<ICartDetail[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: ICartDetail[] = await query("SELECT * from Cart where customer_id = ?", [customerId]);
+    const result: ICartDetail[] = await query(connection, "SELECT * from Cart where customer_id = ?", [customerId]);
 
     return Result.ok(result);
   } catch (err) {
@@ -52,7 +52,7 @@ export const retrieveCartByCustomerId = async (customerId: number): Promise<Resu
 export const deleteCartById = async (cartId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("Delete from Cart where cart_id = ? ", [cartId]);
+    await query(connection, "Delete from Cart where cart_id = ? ", [cartId]);
 
     return Result.ok("Delete cart successfully");
   } catch (err) {

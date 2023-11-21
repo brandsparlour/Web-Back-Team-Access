@@ -24,7 +24,7 @@ export const addProduct = async (data: ICreateProduct): Promise<Result> => {
       color: data.color,
       size: data.size,
     };
-    const [results] = await query("INSERT INTO Products SET ?", jobData);
+    const [results] = await query(connection, "INSERT INTO Products SET ?", jobData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -39,7 +39,7 @@ export const addProduct = async (data: ICreateProduct): Promise<Result> => {
 export const retrieveProducts = async (): Promise<Result<IProductDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IProductDetails[] = await query("SELECT * from Products");
+    const result: IProductDetails[] = await query(connection, "SELECT * from Products");
 
     return Result.ok(result);
   } catch (err) {
@@ -54,7 +54,7 @@ export const retrieveProducts = async (): Promise<Result<IProductDetails[]>> => 
 export const deleteProductById = async (productId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("Delete from Products where product_id = ? ", [productId]);
+    await query(connection, "Delete from Products where product_id = ? ", [productId]);
 
     return Result.ok("Delete product successfully");
   } catch (err) {
