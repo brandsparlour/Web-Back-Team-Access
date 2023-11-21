@@ -37,6 +37,24 @@ export const retrieveProducts = async () => {
   }
 };
 
+export const retrieveProductById = async (productId:number) => {
+  try {
+    // To check whether user exists with this userName
+    const productDetails: Result<IProductDetails | any> = await productRepo.retrieveProductById(productId);
+
+    if (productDetails.isError()) {
+      throw productDetails.error;
+    }
+
+    return Result.ok(productDetails.data);
+  } catch (error) {
+    // logging the error
+    logger.error(`at: "controllers/product/retrieveProducts" => ${JSON.stringify(error)}\n${error}`);
+
+    // return negative response
+    return Result.error("Error retrieving products");
+  }
+};
 
 export const deleteProductById = async (productId: number ) => {
   try {

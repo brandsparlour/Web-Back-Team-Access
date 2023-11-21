@@ -9,7 +9,6 @@ export interface ICreateEvent {
   event_category?: string;
   organizer?: string;
   contact_info?: string;
-  registration_link?: string;
   registration_fee?: number;
   event_capacity?: number;
   event_image?: string;

@@ -97,7 +97,7 @@ router.get("/:eventId", async (req: Request, res: Response, next: NextFunction) 
 
 router.delete("/:participantId", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isEventParticipantExists: Result<IEventParticipantDetails[]> = await eventParticipantController.deleteEventParticipantById(
+    const isEventParticipantExists: Result = await eventParticipantController.deleteEventParticipantById(
       parseInt(req.params.participantId),
     );
     if (isEventParticipantExists.isError()) {

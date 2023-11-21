@@ -8,7 +8,7 @@ import { verifyAdmin } from "../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/admin", verifyAdmin, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/admin", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { company_name, address, contact, logo, privacy_policy, terms_and_conditions } = req.body;
 

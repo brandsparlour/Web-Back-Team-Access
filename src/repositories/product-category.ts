@@ -12,7 +12,7 @@ export const addProductCategory = async (data: ICreateProductCategory): Promise<
       parent_category: data.parent_category,
       description: data.description,
     };
-    const [results] = await query("INSERT INTO ProductCategories SET ?", jobData);
+    const results = await query(connection,"INSERT INTO ProductCategories SET ?", jobData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -27,7 +27,7 @@ export const addProductCategory = async (data: ICreateProductCategory): Promise<
 export const retrieveProductCategory = async (): Promise<Result<IProductCategoryDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IProductCategoryDetails[] = await query("SELECT * from ProductCategories");
+    const result: IProductCategoryDetails[] = await query(connection,"SELECT * from ProductCategories");
 
     return Result.ok(result);
   } catch (err) {
@@ -42,7 +42,7 @@ export const retrieveProductCategory = async (): Promise<Result<IProductCategory
 export const deleteProductCategoryById = async (categoryId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("Delete from ProductCategories where category_id = ? ", [categoryId]);
+    await query(connection,"Delete from ProductCategories where category_id = ? ", [categoryId]);
 
     return Result.ok("Delete product category successfully");
   } catch (err) {

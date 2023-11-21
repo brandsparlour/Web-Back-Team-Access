@@ -78,7 +78,7 @@ router.get("/:productId", async (req: Request, res: Response, next: NextFunction
 
 router.delete("/:reviewId", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isProductReviewExists: Result<IProductReviewDetails[]> = await productReviewController.deleteProductReviewById(
+    const isProductReviewExists: Result = await productReviewController.deleteProductReviewById(
       parseInt(req.params.reviewId),
     );
     if (isProductReviewExists.isError()) {

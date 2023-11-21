@@ -42,7 +42,7 @@ export const retrieveProductBrand = async () => {
 export const deleteProductBrandById = async (brandId: number) => {
   try {
     // To check whether user exists with this userName
-    const productBrandDetails: Result<IProductBrandDetails[] | any> = await productBrandRepo.deleteProductBrandById(
+    const productBrandDetails: Result = await productBrandRepo.deleteProductBrandById(
         brandId,
     );
 

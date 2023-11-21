@@ -89,6 +89,23 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+router.get("/:productId", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const isProductExists: Result<IProductDetails[]> = await productController.retrieveProductById(parseInt(req.params.productId));
+    if (isProductExists.isError()) {
+      throw isProductExists.error;
+    }
+
+    res.status(STATUS.OK).json({
+      status: STATUS.OK,
+      message: "Getting product details",
+      data: isProductExists.data,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.delete("/:productId", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const isProductExists: Result<IProductDetails[]> = await productController.deleteProductById(

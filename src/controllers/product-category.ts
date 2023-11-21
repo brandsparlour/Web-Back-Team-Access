@@ -42,7 +42,7 @@ export const retrieveProductCategories = async () => {
 export const deleteProductCategoryById = async (categoryId: number) => {
   try {
     // To check whether user exists with this userName
-    const productReviewDetails: Result<IProductCategoryDetails[] | any> = await productCategoryRepo.deleteProductCategoryById(
+    const productReviewDetails: Result = await productCategoryRepo.deleteProductCategoryById(
         categoryId,
     );
 

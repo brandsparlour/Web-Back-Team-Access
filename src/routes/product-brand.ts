@@ -62,7 +62,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
 
 router.delete("/:brandId", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isProductBrandExists: Result<IProductBrandDetails[]> =
+    const isProductBrandExists: Result =
       await productBrandController.deleteProductBrandById(parseInt(req.params.brandId));
     if (isProductBrandExists.isError()) {
       throw isProductBrandExists.error;

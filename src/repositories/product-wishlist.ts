@@ -8,7 +8,7 @@ export const addProductWishlist = async (data: ICreateProductWishList): Promise<
   const connection: PoolConnection = await getDbConnection();
   try {
     
-    const [results] = await query("INSERT INTO ProductWishList SET ?", data);
+    const results = await query(connection,"INSERT INTO ProductWishList SET ?", data);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -23,7 +23,7 @@ export const addProductWishlist = async (data: ICreateProductWishList): Promise<
 export const retrieveProductWishlist = async (): Promise<Result<IProductWishList[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IProductWishList[] = await query("SELECT * from ProductWishList");
+    const result: IProductWishList[] = await query(connection,"SELECT * from ProductWishList");
 
     return Result.ok(result);
   } catch (err) {
@@ -38,7 +38,7 @@ export const retrieveProductWishlist = async (): Promise<Result<IProductWishList
 export const deleteProductWishlistById = async (wishlistId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("Delete from ProductWishList where wishlist_id = ? ", [wishlistId]);
+    await query(connection,"Delete from ProductWishList where wishlist_id = ? ", [wishlistId]);
 
     return Result.ok("Delete product wishlist successfully");
   } catch (err) {

@@ -12,11 +12,11 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     const { category_name, parent_category, description } = req.body;
 
     // validate request body
-    if (!category_name || !parent_category) {
+    if (!category_name ) {
       // Throw an error if any parameter is not provided
       const err: CustomError = {
         statusCode: STATUS.BAD_REQUEST,
-        customMessage: `category_name, parent_category  are required`,
+        customMessage: `category_name  are required`,
       };
 
       throw err;
@@ -65,8 +65,9 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
 
 router.delete("/:categoryId", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isProductCategoryExists: Result<IProductCategoryDetails[]> =
+    const isProductCategoryExists: Result =
       await productCategoryController.deleteProductCategoryById(parseInt(req.params.categoryId));
+      
     if (isProductCategoryExists.isError()) {
       throw isProductCategoryExists.error;
     }

@@ -63,7 +63,7 @@ export const retrieveProductReviewsByProductId = async (productId: number) => {
 export const deleteProductReviewById = async (reviewId: number) => {
   try {
     // To check whether user exists with this userName
-    const productReviewDetails: Result<IProductReviewDetails[] | any> = await productReviewRepo.deleteProductReviewById(
+    const productReviewDetails: Result = await productReviewRepo.deleteProductReviewById(
       reviewId,
     );
 

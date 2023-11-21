@@ -18,8 +18,8 @@ export const addCompany = async (data: ICreateCompany): Promise<Result> => {
       terms_and_conditions,
     };
 
-    const [results] = await query(connection, "INSERT INTO Companies SET ?", companyData);
-
+    const results = await query(connection, "INSERT INTO Companies SET ?", companyData);
+    
     return Result.ok(results.insertId);
   } catch (err) {
     logger.error(`at: repositories/company/addCompany => ${err} \n ${JSON.stringify(err)}`);

@@ -51,7 +51,6 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       event_category,
       organizer,
       contact_info,
-      registration_link,
       registration_fee,
       event_capacity,
       event_image,
@@ -133,11 +132,10 @@ router.get("/events-by-month-year/:year/:month", async (req: Request, res: Respo
   }
 });
 
-router.delete("/:event_id/:company_id", async (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:event_id", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const isEventExists: Result<IEventDetails[]> = await eventController.deleteEventById(
-      parseInt(req.params.event_id),
-      parseInt(req.params.company_id),
+      parseInt(req.params.event_id)
     );
     if (isEventExists.isError()) {
       throw isEventExists.error;

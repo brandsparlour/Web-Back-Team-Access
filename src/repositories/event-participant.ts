@@ -18,7 +18,7 @@ export const addEventParticipants = async (data: ICreateEventParticipant): Promi
       payment_status: data.payment_status,
       additional_info: data.additional_info,
     };
-    const [results] = await query("INSERT INTO EventParticipants SET ?", eventData);
+    const results = await query(connection,"INSERT INTO EventParticipants SET ?", eventData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -33,7 +33,7 @@ export const addEventParticipants = async (data: ICreateEventParticipant): Promi
 export const retrieveEventParticipants = async (): Promise<Result<IEventParticipantDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IEventParticipantDetails[] = await query("SELECT * from EventParticipants");
+    const result: IEventParticipantDetails[] = await query(connection,"SELECT * from EventParticipants");
 
     return Result.ok(result);
   } catch (err) {
@@ -48,7 +48,7 @@ export const retrieveEventParticipants = async (): Promise<Result<IEventParticip
 export const retrieveEventParticipantsByEventId = async (eventId: number): Promise<Result<IEventParticipantDetails[]>> => {
     const connection: PoolConnection = await getDbConnection();
     try {
-      const result: IEventParticipantDetails[] = await query("SELECT * from EventParticipants where event_id = ?", [eventId]);
+      const result: IEventParticipantDetails[] = await query(connection,"SELECT * from EventParticipants where event_id = ?", [eventId]);
   
       return Result.ok(result);
     } catch (err) {
@@ -64,7 +64,7 @@ export const retrieveEventParticipantsByEventId = async (eventId: number): Promi
 export const deleteEventParticipantById = async (participantId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("Delete from Events where participant_id = ? ", [participantId]);
+    await query(connection,"Delete from Events where participant_id = ? ", [participantId]);
 
     return Result.ok("Delete event participant successfully");
   } catch (err) {
