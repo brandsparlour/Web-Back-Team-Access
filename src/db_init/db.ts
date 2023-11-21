@@ -13,7 +13,7 @@ const poolOptions: PoolConfig = {
   user: MYSQL_USER,
   password: MYSQL_PASSWORD,
   database: MYSQL_DATABASE,
-  connectionLimit: 2, // adjust the connection limit based on your needs
+  connectionLimit: 5,
 };
 
 const pool = createPool(poolOptions);
@@ -35,13 +35,13 @@ export const releaseDbConnection = (connection: PoolConnection): void => {
   connection.release();
 };
 
-export const query = async (sql: string, values?: any): Promise<[any, FieldInfo[]?]> => {
+export const query = async (connection: PoolConnection, sql: string, values?: any): Promise<any> => {
   return new Promise((resolve, reject) => {
-    pool.query(sql, values, (err: MysqlError | null, results: any, fields: FieldInfo[] | undefined) => {
+    connection.query(sql, values, (err: MysqlError | null, results: any) => {
       if (err) {
         reject(err);
       } else {
-        resolve([results, fields]);
+        resolve(results);
       }
     });
   });

@@ -20,7 +20,7 @@ export const addInternAffiliateLink = async (data: ICreateInternAffiliateLink): 
       created_at: data.created_at,
       updated_at: data.updated_at,
     };
-    const [results] = await query("INSERT INTO internAffiliateLinks SET ?", internAffiliateData);
+    const [results] = await query(connection, "INSERT INTO internAffiliateLinks SET ?", internAffiliateData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -35,7 +35,7 @@ export const addInternAffiliateLink = async (data: ICreateInternAffiliateLink): 
 export const retrieveInternAffiliateLinkDetails = async (): Promise<Result<IInternAffiliateLinkDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IInternAffiliateLinkDetails[] = await query("SELECT * from internAffiliateLinks");
+    const result: IInternAffiliateLinkDetails[] = await query(connection, "SELECT * from internAffiliateLinks");
 
     return Result.ok(result);
   } catch (err) {
@@ -50,9 +50,11 @@ export const retrieveInternAffiliateLinkDetails = async (): Promise<Result<IInte
 export const retrieveInternAffiliateLinkById = async (id: number): Promise<Result<IInternAffiliateLinkDetails>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IInternAffiliateLinkDetails[] = await query("SELECT * from internAffiliateLinks where company_id = ?", [
-      id,
-    ]);
+    const result: IInternAffiliateLinkDetails[] = await query(
+      connection,
+      "SELECT * from internAffiliateLinks where company_id = ?",
+      [id],
+    );
 
     return Result.ok(result[0]);
   } catch (err) {
@@ -67,7 +69,7 @@ export const retrieveInternAffiliateLinkById = async (id: number): Promise<Resul
 export const deleteInternAffiliateLinkById = async (id: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("Delete from internAffiliateLinks where link_id = ?", [id]);
+    await query(connection, "Delete from internAffiliateLinks where link_id = ?", [id]);
 
     return Result.ok("Delete internAffiliateLink successfully");
   } catch (err) {
@@ -82,12 +84,11 @@ export const deleteInternAffiliateLinkById = async (id: number): Promise<Result>
 export const updateInternAffiliateLink = async (data: IUpdateInternAffiliateLink): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query("UPDATE internAffiliateLinks SET job_details = ?, link = ? WHERE company_id = ? and link_id = ?", [
-      data.job_details,
-      data.link,
-      data.company_id,
-      data.link_id,
-    ]);
+    await query(
+      connection,
+      "UPDATE internAffiliateLinks SET job_details = ?, link = ? WHERE company_id = ? and link_id = ?",
+      [data.job_details, data.link, data.company_id, data.link_id],
+    );
 
     return Result.ok("Update internAffiliateLink successfully");
   } catch (err) {

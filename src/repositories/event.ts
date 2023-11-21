@@ -24,7 +24,7 @@ export const addEvent = async (data: ICreateEvent): Promise<Result> => {
       status: data.status,
       registration_status: data.registration_status,
     };
-    const [results] = await query("INSERT INTO Events SET ?", eventData);
+    const [results] = await query(connection, "INSERT INTO Events SET ?", eventData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -39,7 +39,7 @@ export const addEvent = async (data: ICreateEvent): Promise<Result> => {
 export const retrieveEvents = async (): Promise<Result<IEventDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result:IEventDetails[] = await query("SELECT * from Events");
+    const result: IEventDetails[] = await query(connection, "SELECT * from Events");
 
     return Result.ok(result);
   } catch (err) {
@@ -51,10 +51,17 @@ export const retrieveEvents = async (): Promise<Result<IEventDetails[]>> => {
   }
 };
 
-export const retrieveEventsByGivenDateRange = async(startDate:Date,endDate:Date): Promise<Result<IEventDetails[]>> => {
+export const retrieveEventsByGivenDateRange = async (
+  startDate: Date,
+  endDate: Date,
+): Promise<Result<IEventDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result:IEventDetails[] = await query("SELECT * from Events where event_date >= ? AND event_date <= ?",[startDate,endDate]);
+    const result: IEventDetails[] = await query(
+      connection,
+      "SELECT * from Events where event_date >= ? AND event_date <= ?",
+      [startDate, endDate],
+    );
 
     return Result.ok(result);
   } catch (err) {
@@ -66,10 +73,17 @@ export const retrieveEventsByGivenDateRange = async(startDate:Date,endDate:Date)
   }
 };
 
-export const retrieveEventsByGivenMonthAndYear = async(month:number,year:number): Promise<Result<IEventDetails[]>> => {
+export const retrieveEventsByGivenMonthAndYear = async (
+  month: number,
+  year: number,
+): Promise<Result<IEventDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result:IEventDetails[] = await query("SELECT * from Events where MONTH(event_date) = ? AND YEAR(event_date) = ?",[month,year]);
+    const result: IEventDetails[] = await query(
+      connection,
+      "SELECT * from Events where MONTH(event_date) = ? AND YEAR(event_date) = ?",
+      [month, year],
+    );
 
     return Result.ok(result);
   } catch (err) {
@@ -81,10 +95,10 @@ export const retrieveEventsByGivenMonthAndYear = async(month:number,year:number)
   }
 };
 
-export const deleteEventById = async(eventId: number , company_id: number): Promise<Result> =>{
+export const deleteEventById = async (eventId: number, company_id: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-     await query("Delete from Events where event_id = ? AND company_id = ?",[eventId,company_id]);
+    await query(connection, "Delete from Events where event_id = ? AND company_id = ?", [eventId, company_id]);
 
     return Result.ok("Delete event successfully");
   } catch (err) {
@@ -94,4 +108,4 @@ export const deleteEventById = async(eventId: number , company_id: number): Prom
   } finally {
     releaseDbConnection(connection);
   }
-}
+};

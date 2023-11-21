@@ -2,17 +2,22 @@ export interface ICreateCompany {
   company_name: string;
   address: string;
   contact: string;
-  created_at?: string;
-  updated_at?: string;
+  logo?: string;
+  privacy_policy?: string;
+  terms_and_conditions?: string;
 }
 
 export interface ICompanyDetails extends ICreateCompany {
   company_id: number;
+  created_at: Date;
+  updated_at?: Date;
 }
 
 export interface IUpdateCompany {
-  company_id: number;
-  company_name: string;
-  address: string;
-  contact: string;
+  company_name?: string;
+  address?: string;
+  contact?: string;
+  logo?: string;
+  privacy_policy?: string;
+  terms_and_conditions?: string;
 }

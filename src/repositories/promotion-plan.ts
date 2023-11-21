@@ -8,16 +8,16 @@ export const addPromotionPlan = async (data: ICreatePromotionPlan): Promise<Resu
   const connection: PoolConnection = await getDbConnection();
   try {
     const companyData = {
-        plan_name: data.plan_name,
-        description: data.description,
-        price: data.price,
-        currency: data.currency,
-        billing_cycle: data.billing_cycle,
-        features: data.features,
-        customization_options: data.customization_options,
-        availability:data.availability,
+      plan_name: data.plan_name,
+      description: data.description,
+      price: data.price,
+      currency: data.currency,
+      billing_cycle: data.billing_cycle,
+      features: data.features,
+      customization_options: data.customization_options,
+      availability: data.availability,
     };
-    const [results] = await query("INSERT INTO PromotionPlans SET ?", companyData);
+    const [results] = await query(connection, "INSERT INTO PromotionPlans SET ?", companyData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -32,7 +32,7 @@ export const addPromotionPlan = async (data: ICreatePromotionPlan): Promise<Resu
 export const retrievePromotionPlan = async (): Promise<Result<IPromotionPlan[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IPromotionPlan[] = await query("SELECT * from PromotionPlans");
+    const result: IPromotionPlan[] = await query(connection, "SELECT * from PromotionPlans");
 
     return Result.ok(result);
   } catch (err) {
@@ -47,7 +47,7 @@ export const retrievePromotionPlan = async (): Promise<Result<IPromotionPlan[]>>
 export const retrievePromotionPlanById = async (id: number): Promise<Result<IPromotionPlan>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IPromotionPlan[] = await query("SELECT * from PromotionPlans where plan_id = ?", [id]);
+    const result: IPromotionPlan[] = await query(connection, "SELECT * from PromotionPlans where plan_id = ?", [id]);
 
     return Result.ok(result[0]);
   } catch (err) {
