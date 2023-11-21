@@ -1,119 +1,139 @@
-import express, { Request, Response, NextFunction } from "express";
-import { ICreateUser, IStoreUserResult, IStoredUser } from "../interfaces/user";
-import { CustomError } from "../middlewares/error";
+import express, { NextFunction, Request, Response } from "express";
 import STATUS from "../constants/status-code";
 import * as userController from "../controllers/user";
+import { generateHash } from "../helpers/bcrypt";
 import { Result } from "../interfaces/result";
-import { hashString, validateHashedString } from "../helpers/bcrypt";
-import { generateToken } from "../helpers/jwt";
+import { ICreateUser, UserTypes } from "../interfaces/user";
+import { CustomError } from "../middlewares/error";
 
 const router = express.Router();
 
-router.post("/sign-up", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/admin/register", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const {
-      company_id,
-      user_type,
-      role,
-      full_name,
-      mobile_number,
-      email,
-      password,
-      dob,
-      profile_image,
-      address,
-      reporting_to,
-      locations_responsible,
-    } = req.body;
+    const { company_id, user_type, full_name, mobile_number, email, password, dob } = req.body;
 
     // validate request body
-    if (!full_name || !password || !user_type || !role || !company_id) {
-      // Throw an error if any parameter is not provided
+    if (!company_id || !user_type || !full_name || !mobile_number || !password) {
       const err: CustomError = {
         statusCode: STATUS.BAD_REQUEST,
-        customMessage: `full name , password, user type , role and company id are required`,
+        customMessage: "Company Id, User Type, full name, mobile_number and password are required",
       };
 
       throw err;
     }
 
-    const data: ICreateUser = {
-      full_name,
-      password: hashString(password),
+    if (!Object.keys(UserTypes).includes(user_type)) {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Invalid user type",
+      };
+    }
+
+    const userDetails: ICreateUser = {
       company_id,
       user_type,
-      role,
+      full_name,
       mobile_number,
       email,
+      password: generateHash(password),
       dob,
-      profile_image,
-      address,
-      reporting_to,
-      locations_responsible,
     };
 
-    // controller call to save user details
-    const result: Result<IStoreUserResult> = await userController.addUser(data);
+    const result: Result = await userController.addUser(userDetails);
     if (result.isError()) {
       throw result.error;
     }
 
-    // generate jwt token
-    const token = generateToken({ email: email, user_id: result.data, company_id: company_id,user_type:user_type, role: role });
-
-
     res.status(STATUS.OK).json({
       status: STATUS.OK,
-      message: "Successfully registered user",
-      userId: result.data?.id,
-      token,
+      message: "Successfully created user",
+      data: result.data,
     });
   } catch (error) {
     next(error);
   }
 });
 
-router.post("/sign-in", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { mobileNumber, password } = req.body;
+    const { company_id, mobile_number, password } = req.body;
 
-    // validate request body
-    if (!mobileNumber || !password) {
-      // Throw an error if any parameter is not provided
+    if (!company_id || !mobile_number || !password) {
       const err: CustomError = {
         statusCode: STATUS.BAD_REQUEST,
-        customMessage: `mobileNumber and password are required`,
+        customMessage: "Company Id, mobile_number and password are required",
       };
 
       throw err;
     }
 
-    // check if the user exists with the userName
-    const isUserExists: Result<IStoredUser> = await userController.fetchUserDetails(mobileNumber);
-    if (isUserExists.isError()) {
-      throw isUserExists.error;
+    const result: Result = await userController.loginUser(company_id, mobile_number, password);
+    if (result.isError()) {
+      throw result.error;
     }
-
-    // validate password
-    const isPasswordValid: boolean = await validateHashedString(password, isUserExists.data?.password!);
-
-    if (!isPasswordValid) {
-      // throw an error if entered password is invalid
-      const err: CustomError = {
-        statusCode: STATUS.BAD_REQUEST,
-        customMessage: "Invalid password",
-      };
-      throw err;
-    }
-
-    // generate token
-    const token = generateToken({email: isUserExists.data?.email, user_id: isUserExists.data?.user_id,company_id: isUserExists.data?.company_id, user_type: isUserExists.data?.user_type, role: isUserExists.data?.role});
-
 
     res.status(STATUS.OK).json({
       status: STATUS.OK,
-      message: "Successfully logged in",
-      token,
+      message: "Successfully logged in.",
+      data: result.data,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/mobileNumber/:mobile_number", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { mobile_number } = req.params;
+
+    const { company_id } = req.headers as any;
+
+    if (!company_id || !mobile_number || mobile_number === "undefined") {
+      const err: CustomError = {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Mobile number and company id are required",
+      };
+
+      throw err;
+    }
+
+    const result: Result = await userController.fetchUserDetailsByMobileNumber(parseInt(company_id), mobile_number);
+    if (result.isError()) {
+      throw result.error;
+    }
+
+    res.status(STATUS.OK).json({
+      status: STATUS.OK,
+      message: "Successfully fetched user details.",
+      data: result.data,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/id/:user_id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { user_id } = req.params;
+
+    if (!user_id || user_id === "undefined") {
+      const err: CustomError = {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "user id is required",
+      };
+
+      throw err;
+    }
+
+    const result: Result = await userController.fetchUserById(parseInt(user_id));
+    if (result.isError()) {
+      throw result.error;
+    }
+
+    res.status(STATUS.OK).json({
+      status: STATUS.OK,
+      message: "Successfully fetched user details.",
+      data: result.data,
     });
   } catch (error) {
     next(error);

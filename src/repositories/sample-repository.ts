@@ -10,7 +10,7 @@ export const insertData = async (
 ): Promise<Result<any>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const [results]: any = await query(`INSERT INTO ?? SET ?`, [tb, insertObject]);
+    const [results]: any = await query(connection, `INSERT INTO ?? SET ?`, [tb, insertObject]);
     return Result.ok(results.insertId);
   } catch (error: any) {
     logger.error(`at src/repositories/sample-repository.ts => ${JSON.stringify(error)}`);

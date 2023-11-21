@@ -9,17 +9,19 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import error from "./middlewares/error";
-import logger from "./utils/logger";
+import logger, { httpLogger } from "./utils/logger";
 
 dotenv.config();
 
-import healthcheck from "./routes/healthcheck";
-import user from "./routes/user";
-import event from "./routes/event";
-import job from "./routes/job";
-import vacancy from "./routes/vacancy";
 import company from "./routes/company";
+import employee from "./routes/employee";
+import event from "./routes/event";
+import healthcheck from "./routes/healthcheck";
 import internAffiliateLink from "./routes/intern-affiliates-link";
+import job from "./routes/job";
+import role from "./routes/role";
+import user from "./routes/user";
+import vacancy from "./routes/vacancy";
 
 // In case of production environment, disable console logs
 if (process.env.NODE_ENV === "production") {
@@ -63,18 +65,20 @@ morgan.token("remote-addr", (req: Request) => {
 app.use(
   morgan("common", {
     stream: {
-      write: (message) => logger.http(message),
+      write: (message) => httpLogger.http(message),
     },
   }),
 );
 
 app.use("/healthcheck", healthcheck);
+app.use("/company", company);
+app.use("/role", role);
 app.use("/user", user);
+app.use("/employee", employee);
 app.use("/event", event);
 app.use("/job", job);
 app.use("/vacancy", vacancy);
-app.use("/company", company);
-app.use("/intern-affiliate-link",internAffiliateLink)
+app.use("/intern-affiliate-link", internAffiliateLink);
 
 // Express error middleware
 app.use(error);

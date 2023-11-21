@@ -8,21 +8,21 @@ export const addJob = async (data: ICreateJob): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
     const jobData = {
-        job_title: data.job_title,
-        company: data.company,
-        location:data.location,
-        description: data.description,
-        salary: data.salary,
-        employment_type: data.employment_type,
-        job_category:data.job_category,
-        application_deadline: data.application_deadline,
-        experience_level: data.experience_level,
-        education: data.education,
-        contact_email: data.contact_email,
-        posted_date: data.posted_date,
-        application_url: data.application_url,
+      job_title: data.job_title,
+      company: data.company,
+      location: data.location,
+      description: data.description,
+      salary: data.salary,
+      employment_type: data.employment_type,
+      job_category: data.job_category,
+      application_deadline: data.application_deadline,
+      experience_level: data.experience_level,
+      education: data.education,
+      contact_email: data.contact_email,
+      posted_date: data.posted_date,
+      application_url: data.application_url,
     };
-    const [results] = await query("INSERT INTO Jobs SET ?", jobData);
+    const [results] = await query(connection, "INSERT INTO Jobs SET ?", jobData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -37,7 +37,7 @@ export const addJob = async (data: ICreateJob): Promise<Result> => {
 export const retrieveJobs = async (): Promise<Result<IJobDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result:IJobDetails[] = await query("SELECT * from Jobs");
+    const result: IJobDetails[] = await query(connection, "SELECT * from Jobs");
 
     return Result.ok(result);
   } catch (err) {
@@ -49,11 +49,11 @@ export const retrieveJobs = async (): Promise<Result<IJobDetails[]>> => {
   }
 };
 
-export const retrieveJobById = async (id:number): Promise<Result<IJobDetails>> => {
+export const retrieveJobById = async (id: number): Promise<Result<IJobDetails>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IJobDetails[] = await query("SELECT * from Jobs where job_id = ?", [id]);
-    
+    const result: IJobDetails[] = await query(connection, "SELECT * from Jobs where job_id = ?", [id]);
+
     return Result.ok(result[0]);
   } catch (err) {
     logger.error(`at: repositories/job/retrieveJobById => ${err} \n ${JSON.stringify(err)}`);
@@ -64,10 +64,10 @@ export const retrieveJobById = async (id:number): Promise<Result<IJobDetails>> =
   }
 };
 
-export const deleteJobById = async(jobId: number ): Promise<Result> =>{
+export const deleteJobById = async (jobId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-     await query("Delete from Jobs where job_id = ? ",[jobId]);
+    await query(connection, "Delete from Jobs where job_id = ? ", [jobId]);
 
     return Result.ok("Delete job successfully");
   } catch (err) {
@@ -77,5 +77,4 @@ export const deleteJobById = async(jobId: number ): Promise<Result> =>{
   } finally {
     releaseDbConnection(connection);
   }
-}
-
+};

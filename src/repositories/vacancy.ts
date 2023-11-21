@@ -14,7 +14,7 @@ export const addVacancy = async (data: ICreateVacancy): Promise<Result> => {
       created_at: data.created_at,
       updated_at: data.updated_at,
     };
-    const [results] = await query("INSERT INTO Vacancies SET ?", jobData);
+    const [results] = await query(connection, "INSERT INTO Vacancies SET ?", jobData);
 
     return Result.ok(results.insertId);
   } catch (err) {
@@ -29,7 +29,7 @@ export const addVacancy = async (data: ICreateVacancy): Promise<Result> => {
 export const retrieveVacancies = async (): Promise<Result<IVacancyDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IVacancyDetails[] = await query("SELECT * from Vacancies");
+    const result: IVacancyDetails[] = await query(connection, "SELECT * from Vacancies");
 
     return Result.ok(result);
   } catch (err) {
@@ -41,10 +41,14 @@ export const retrieveVacancies = async (): Promise<Result<IVacancyDetails[]>> =>
   }
 };
 
-export const updateVacancyById = async(data:IUpdateVacancy): Promise<Result> =>{
+export const updateVacancyById = async (data: IUpdateVacancy): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-     await query("Update Vacancies set number_of_positions = ? , status = ? where vacancy_id = ? and job_id = ?",[data.numberOfPositions,data.status,data.vacancyId,data.jobId]);
+    await query(
+      connection,
+      "Update Vacancies set number_of_positions = ? , status = ? where vacancy_id = ? and job_id = ?",
+      [data.numberOfPositions, data.status, data.vacancyId, data.jobId],
+    );
 
     return Result.ok("Update vacancy successfully");
   } catch (err) {
@@ -54,12 +58,12 @@ export const updateVacancyById = async(data:IUpdateVacancy): Promise<Result> =>{
   } finally {
     releaseDbConnection(connection);
   }
-}
+};
 
-export const deleteVacancyById = async(vacancyId:number,jobId: number ): Promise<Result> =>{
+export const deleteVacancyById = async (vacancyId: number, jobId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-     await query("Delete from Vacancies where vacancy_id = ? and job_id = ?",[vacancyId,jobId]);
+    await query(connection, "Delete from Vacancies where vacancy_id = ? and job_id = ?", [vacancyId, jobId]);
 
     return Result.ok("Delete vacancy successfully");
   } catch (err) {
@@ -69,5 +73,4 @@ export const deleteVacancyById = async(vacancyId:number,jobId: number ): Promise
   } finally {
     releaseDbConnection(connection);
   }
-}
-
+};

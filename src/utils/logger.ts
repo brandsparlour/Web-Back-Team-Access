@@ -24,10 +24,19 @@ const httpFormat = printf(({ level, message, label }) => {
   return `${level.toUpperCase()} [${label}] => ${message}`;
 });
 
+const customLoggerLevels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 3,
+  debug: 4,
+  verbose: 5,
+  silly: 6,
+};
+
 // Create a logger using winston
 const logger = winston.createLogger({
-  // Setting the level to log info or higher only
-  level: "info",
+  levels: customLoggerLevels,
   // Using the custom format for logging
   transports: [
     new winston.transports.Console({
@@ -46,8 +55,7 @@ const logger = winston.createLogger({
 
 // Logger for HTTP requests only
 export const httpLogger = winston.createLogger({
-  level: "http",
-
+  levels: customLoggerLevels,
   transports: [
     new winston.transports.Console({
       level: "http",

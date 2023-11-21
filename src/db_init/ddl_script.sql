@@ -1,4 +1,3 @@
--- Companies table
 CREATE TABLE Companies (
     company_id INT AUTO_INCREMENT PRIMARY KEY,
     company_name VARCHAR(255) NOT NULL,
@@ -11,22 +10,31 @@ CREATE TABLE Companies (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Roles table
 CREATE TABLE Roles (
     role_id INT AUTO_INCREMENT PRIMARY KEY,
-    designation VARCHAR(50)
+    company_id INT NOT NULL,
+    designation VARCHAR(50) UNIQUE,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
--- Employees table
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    user_type enum('ADMIN','EMPLOYEE', 'INTERN', 'CUSTOMER'),
+    full_name VARCHAR(255) NOT NULL,
+    mobile_number VARCHAR(15) NOT NULL,
+    email VARCHAR(255),
+    password VARCHAR(255) NOT NULL,
+    dob DATE,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    UNIQUE(company_id, mobile_number)
+);
+
 CREATE TABLE Employees (
     employee_id INT AUTO_INCREMENT PRIMARY KEY,
     company_id INT NOT NULL,
-    role_id INT,
-    full_name VARCHAR(255) NOT NULL,
-    mobile_number VARCHAR(15) UNIQUE NOT NULL,
-    email VARCHAR(255) ,
-    password VARCHAR(255) NOT NULL,
-    dob DATE,
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
     profile_image VARCHAR(255),
     address VARCHAR(255),
     reporting_to INT,
@@ -34,43 +42,15 @@ CREATE TABLE Employees (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (role_id) REFERENCES Roles(role_id),
     FOREIGN KEY (reporting_to) REFERENCES Employees(employee_id),
-    FOREIGN KEY (role_id) REFERENCES Roles(role_id)
+    UNIQUE (company_id, user_id)
 );
 
--- Customers table
-CREATE TABLE Customers (
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NOT NULL,
-    full_name VARCHAR(255) NOT NULL,
-    mobile_number VARCHAR(15) UNIQUE NOT NULL,
-    email VARCHAR(255),
-    password VARCHAR(255) NOT NULL,
-    dob DATE,
-    profile_image VARCHAR(255),
-    address VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
-);
-
--- internAffiliateLinks table 
-CREATE TABLE internAffiliateLinks (
-    link_id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NOT NULL,
-    created_by INT,
-    job_details TEXT,
-    link VARCHAR(255) UNIQUE NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
-    FOREIGN KEY (created_by) REFERENCES Employees(employee_id)
-);
-
--- Internships table
 CREATE TABLE Internships (
     internship_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
     name VARCHAR(255),
     description TEXT,
     payment_type ENUM('PAID', 'FREE') DEFAULT 'PAID',
@@ -79,15 +59,27 @@ CREATE TABLE Internships (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Interns table
+CREATE TABLE internAffiliateLinks (
+    link_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    created_by INT,
+    job_details TEXT,
+    link VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (created_by) REFERENCES Employees(employee_id)
+);
+
 CREATE TABLE Interns (
     intern_id INT AUTO_INCREMENT PRIMARY KEY,
     company_id INT NOT NULL,
-    employee_id INT NOT NULL,
+    user_id INT NOT NULL,
+    internship_id INT NOT NULL,
     link_id INT,
     referred_by INT,
     intern_type ENUM('ORGANIZER', 'INFLUENCER'),
-    internship_id INT NOT NULL,
     course VARCHAR(255),
     year INT,
     college VARCHAR(255),
@@ -97,14 +89,62 @@ CREATE TABLE Interns (
     payment_status ENUM('PAID', 'PENDING'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
-    FOREIGN KEY (link_id) REFERENCES internAffiliateLinks(link_id),
     FOREIGN KEY (company_id) REFERENCES Companies(company_id),
-    FOREIGN KEY (referred_by) REFERENCES Employees(employee_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (internship_id) REFERENCES Internships(internship_id)
+    FOREIGN KEY (link_id) REFERENCES internAffiliateLinks(link_id),
+    FOREIGN KEY (referred_by) REFERENCES Employees(employee_id)
 );
 
--- Events table
+CREATE TABLE Customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    user_id INT NOT NULL,
+    type ENUM('event sponsorship(promote my business)', 'product purchase', 'plan purchase'),
+    profile_image VARCHAR(255),
+    address VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    UNIQUE (company_id, user_id)
+);
+
+CREATE TABLE PaymentOrders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    payment_order_for ENUM('INTERNSHIP', 'EVENT_PARTICIPATION', 'PRODUCT_PURCHASE', 'PROMOTION', 'EVENT_SPONSORSHIP'),
+    payment_gateway ENUM('RAZOR_PAY', 'CASH_FREE'),
+    payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'NET_BANKING', 'UPI'),
+    transaction_id VARCHAR(100),
+    payment_status ENUM('PAID', 'PENDING', 'FAILED', 'REFUNDED'),
+    payee_type ENUM('EMPLOYEE', 'INTERN', 'CUSTOMER'),
+    employee_id INT,
+    intern_id INT,
+    customer_id INT,
+    item_id INT,
+    billing_details TEXT,
+    payment_gateway_response TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (intern_id) REFERENCES Interns(intern_id),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+
+CREATE TABLE Payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,    
+    company_id INT NOT NULL,
+    order_id INT NOT NULL,
+    amount DECIMAL(10,2),
+    currency VARCHAR(10),
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (order_id) REFERENCES PaymentOrders(order_id)
+);
+
 CREATE TABLE Events (
     event_id INT AUTO_INCREMENT PRIMARY KEY,
     company_id INT NOT NULL,
@@ -117,68 +157,36 @@ CREATE TABLE Events (
     event_category VARCHAR(255),
     organizer VARCHAR(255),
     contact_info VARCHAR(255),
-    registration_link VARCHAR(255),
     event_capacity INT,
     event_image VARCHAR(255),
-    status ENUM('Upcoming', 'Past', 'Cancelled'),
-    registration_status ENUM('Open', 'Closed'),
+    status ENUM('UPCOMING', 'PAST', 'CANCELLED'),
+    registration_status ENUM('OPEN', 'CLOSED') DEFAULT 'OPEN',
     payment_type ENUM('PAID', 'FREE') DEFAULT 'PAID',
+    participant_benefits TEXT,
     registration_fee DECIMAL(10,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
--- EventParticipants table
 CREATE TABLE EventParticipants (
     participant_id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NOT NULL,
-    customer_id INT NOT NULL,
     event_id INT NOT NULL,
-    name VARCHAR(255),
+    company_id INT NOT NULL,
+    user_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255),
-    phone VARCHAR(15),
+    phone VARCHAR(15) NOT NULL,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_status ENUM('PAID', 'PENDING') DEFAULT 'PENDING',
+    payment_status ENUM('PAID', 'PENDING'),
     additional_info TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES Events(event_id),
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
-    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
--- PaymentOrders table
-CREATE TABLE PaymentOrders (
-    order_id INT AUTO_INCREMENT PRIMARY KEY,
-    payment_order_for ENUM('INTERNSHIP', 'EVENT', 'STORE', 'PROMOTION'),
-    payment_gateway ENUM('RAZOR_PAY', 'CASH_FREE'),
-    payment_method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'NET_BANKING', 'UPI'),
-    transaction_id VARCHAR(100),
-    payment_status ENUM('PAID', 'PENDING', 'FAILED', 'REFUNDED'),
-    employee_id INT,
-    customer_id INT,
-    item_id INT,
-    billing_details TEXT,
-    payment_gateway_response TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
-);
-
--- Payments table
-CREATE TABLE Payments (
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,
-    amount DECIMAL(10,2),
-    currency VARCHAR(10),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES PaymentOrders(order_id)
-);
-
--- PromotionPlans table
 CREATE TABLE PromotionPlans (
     plan_id INT AUTO_INCREMENT PRIMARY KEY,
     plan_name VARCHAR(100) NOT NULL,
@@ -193,7 +201,6 @@ CREATE TABLE PromotionPlans (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Jobs table
 CREATE TABLE Jobs (
     job_id INT AUTO_INCREMENT PRIMARY KEY,
     job_title VARCHAR(255) NOT NULL,
@@ -214,7 +221,6 @@ CREATE TABLE Jobs (
     FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
--- Vacancies table
 CREATE TABLE Vacancies (
     vacancy_id INT AUTO_INCREMENT PRIMARY KEY,
     job_id INT,
@@ -227,7 +233,6 @@ CREATE TABLE Vacancies (
     FOREIGN KEY (company_id) REFERENCES Companies(company_id)
 );
 
--- Applications table
 CREATE TABLE Applications (
     application_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
@@ -239,11 +244,10 @@ CREATE TABLE Applications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (position_id) REFERENCES Vacancies(vacancy_id),
-    FOREIGN KEY (company_id) REFERENCES Companies(company_id)
+    FOREIGN KEY (company_id) REFERENCES Companies(company_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
 
--- Products table
 CREATE TABLE Products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
@@ -265,7 +269,6 @@ CREATE TABLE Products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- ProductReviews table
 CREATE TABLE ProductReviews (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,
@@ -273,11 +276,10 @@ CREATE TABLE ProductReviews (
     rating INT,
     review_text TEXT,
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+    FOREIGN KEY (product_id) REFERENCES Products(product_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
 
--- ProductCategories table
 CREATE TABLE ProductCategories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(100) NOT NULL,
@@ -286,7 +288,6 @@ CREATE TABLE ProductCategories (
     FOREIGN KEY (parent_category) REFERENCES ProductCategories(category_id)
 );
 
--- ProductBrands table
 CREATE TABLE ProductBrands (
     brand_id INT AUTO_INCREMENT PRIMARY KEY,
     brand_name VARCHAR(100) NOT NULL,
@@ -297,7 +298,6 @@ CREATE TABLE ProductBrands (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- ProductWishList table
 CREATE TABLE ProductWishList (
     wishlist_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
@@ -306,7 +306,6 @@ CREATE TABLE ProductWishList (
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
 
--- Cart table continued
 CREATE TABLE Cart (
     cart_id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
@@ -316,7 +315,6 @@ CREATE TABLE Cart (
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
 
--- Notifications table
 CREATE TABLE Notifications (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,

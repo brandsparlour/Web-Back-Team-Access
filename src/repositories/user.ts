@@ -1,83 +1,75 @@
-import { Result } from "../interfaces/result";
-import logger from "../utils/logger";
-import { getDbConnection, query, releaseDbConnection } from "../db_init/db";
 import { PoolConnection } from "mysql";
-import { ICreateUser } from "../interfaces/user";
+import { getDbConnection, query, releaseDbConnection } from "../db_init/db";
+import { Result } from "../interfaces/result";
+import { ICreateUser, IUserDetails } from "../interfaces/user";
+import logger from "../utils/logger";
 
-export const addUser = async (data: ICreateUser): Promise<Result> => {
+export const addUser = async (userData: ICreateUser): Promise<Result<{ user_id: number }>> => {
   const connection: PoolConnection = await getDbConnection();
-  try {
-    const userData = {
-      company_id: data.company_id,
-      user_type: data.user_type,
-      role: data.role,
-      full_name: data.full_name,
-      mobile_number: data.mobile_number,
-      email: data.email,
-      password: data.password,
-      dob: data.dob,
-      profile_image: data.profile_image,
-      address: data.address,
-      reporting_to: data.reporting_to,
-      locations_responsible: data.locations_responsible,
-    };
-    const [results] = await query("INSERT INTO Users SET ?", userData);
 
-    return Result.ok(results.insertId);
+  try {
+    const results = await query(connection, "INSERT INTO Users SET ? ", userData);
+
+    return Result.ok({ user_id: results.insertId });
   } catch (err) {
-    logger.error(`at: repositories/users/addUser => ${err} \n ${JSON.stringify(err)}`);
+    logger.error(`at: repositories/user/addUser => ${err} \n ${JSON.stringify(err)}`);
 
     return Result.error(`Error adding user => ${err}`);
-  }
-  finally {
+  } finally {
     releaseDbConnection(connection);
   }
 };
 
-export const fetchUserByUserPhoneNumber = async (
-  phoneNumber: string
-): Promise<Result> => {
+export const fetchUserByEmail = async (company_id: number, email: string): Promise<Result<IUserDetails>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result = await query('SELECT * from Users WHERE mobile_number= ?', [
-      phoneNumber,
+    const result = await query(connection, "SELECT * from Users WHERE company_id = ? AND email= ?", [
+      company_id,
+      email,
     ]);
 
     return Result.ok(result[0]);
   } catch (err) {
-    logger.error(
-      `at: repositories/users/fetchUserByUserName => ${err} \n ${JSON.stringify(
-        err
-      )}`
-    );
+    logger.error(`at: repositories/user/fetchUserByEmail => ${JSON.stringify(err)} \n  ${err}`);
 
-    return Result.error(`Error fetching user => ${err}`);
-  }
-  finally {
+    return Result.error(`Error fetching user details => ${err}`);
+  } finally {
     releaseDbConnection(connection);
   }
 };
 
-export const fetchUserById = async (
-  id: number
-): Promise<Result> => {
+export const fetchUserByMobileNumber = async (
+  company_id: number,
+  mobileNumber: string,
+): Promise<Result<IUserDetails>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result = await query('SELECT * from Users WHERE user_id= ?', [
-      id,
+    const result = await query(connection, "SELECT * from Users WHERE company_id = ? AND mobile_number= ?", [
+      company_id,
+      mobileNumber,
     ]);
 
-    return Result.ok(result);
+    return Result.ok(result[0]);
   } catch (err) {
-    logger.error(
-      `at: repositories/users/fetchUserById => ${err} \n ${JSON.stringify(
-        err
-      )}`
-    );
+    logger.error(`at: repositories/user/fetchUserByMobileNumber => ${JSON.stringify(err)} \n  ${err}`);
+
+    return Result.error(`Error fetching user details => ${err}`);
+  } finally {
+    releaseDbConnection(connection);
+  }
+};
+
+export const fetchUserById = async (user_id: number): Promise<Result<IUserDetails>> => {
+  const connection: PoolConnection = await getDbConnection();
+  try {
+    const result = await query(connection, "SELECT * from Users WHERE user_id= ?", [user_id]);
+
+    return Result.ok(result[0]);
+  } catch (err) {
+    logger.error(`at: repositories/user/fetchUserById => ${err} \n ${JSON.stringify(err)}`);
 
     return Result.error(`Error fetching user => ${err}`);
-  }
-  finally {
+  } finally {
     releaseDbConnection(connection);
   }
 };
