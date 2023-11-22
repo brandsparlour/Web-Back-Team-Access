@@ -60,7 +60,6 @@ export const retrieveEventParticipantsByEventId = async (eventId: number): Promi
     }
   };
 
-
 export const deleteEventParticipantById = async (participantId: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {

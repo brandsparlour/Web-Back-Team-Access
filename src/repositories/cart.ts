@@ -7,7 +7,7 @@ import { ICartDetail, ICreateCart } from "../interfaces/cart";
 export const addCart = async (data: ICreateCart): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const [results] = await query(connection,"INSERT INTO Cart SET ?", data);
+    const results = await query(connection,"INSERT INTO Cart SET ?", data);
 
     return Result.ok(results.insertId);
   } catch (err) {

@@ -8,10 +8,10 @@ export const addProductReview = async (data: ICreateProductReview): Promise<Resu
   const connection: PoolConnection = await getDbConnection();
   try {
     const jobData = {
-        product_id : data.product_id,
-        customer_id :data.customer_id,
-        rating : data.rating,
-        review_text  : data.review_text
+      product_id: data.product_id,
+      customer_id: data.customer_id,
+      rating: data.rating,
+      review_text: data.review_text,
     };
     const results = await query(connection,"INSERT INTO ProductReviews SET ?", jobData);
 
