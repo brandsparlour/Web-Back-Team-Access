@@ -59,7 +59,7 @@ CREATE TABLE Internships (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE internAffiliateLinks (
+CREATE TABLE InternAffiliateLinks (
     link_id INT AUTO_INCREMENT PRIMARY KEY,
     company_id INT NOT NULL,
     created_by INT,

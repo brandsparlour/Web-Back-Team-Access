@@ -1,30 +1,33 @@
-import { Result } from "../interfaces/result";
-import * as internAffiliateLinkRepo from "../repositories/intern-affiliate-link";
-import logger from "../utils/logger";
+import STATUS from "../constants/status-code";
+import * as companyController from "../controllers/company";
 import {
   ICreateInternAffiliateLink,
   IInternAffiliateLinkDetails,
   IUpdateInternAffiliateLink,
 } from "../interfaces/intern-affiliate-link";
-import * as companyController from "../controllers/company";
-import * as userController from "./employee";
+import { Result } from "../interfaces/result";
+import * as internAffiliateLinkRepo from "../repositories/intern-affiliate-link";
+import logger from "../utils/logger";
 
-export const addInternAffiliateLink = async (data: ICreateInternAffiliateLink) => {
+export const addInternAffiliateLink = async (
+  data: ICreateInternAffiliateLink,
+): Promise<Result<{ link_id: number }>> => {
   try {
-    // check if company name already exists
     const companyDetails = await companyController.retrieveCompanyDetailsById(data.company_id);
 
     if (companyDetails.isError()) {
       throw companyDetails.error;
     }
 
-    const userDetails = await userController.fetchEmployeeDetailsById(data.created_by);
-
-    if (userDetails.isError()) {
-      throw userDetails.error;
+    if (!companyDetails.data) {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Company not found",
+      };
     }
+
     // calling repo function to store data
-    const addInternAffiliateResult: Result = await internAffiliateLinkRepo.addInternAffiliateLink(data);
+    const addInternAffiliateResult = await internAffiliateLinkRepo.addInternAffiliateLink(data);
     // If there is any error then throw error
     if (addInternAffiliateResult.isError()) {
       throw addInternAffiliateResult.error;
@@ -36,11 +39,12 @@ export const addInternAffiliateLink = async (data: ICreateInternAffiliateLink) =
   }
 };
 
-export const retrieveInternAffiliateLinkDetails = async () => {
+export const retrieveAllInternshipAffiliateLinksCreatedByAnEmployee = async (
+  employee_id: number,
+): Promise<Result<IInternAffiliateLinkDetails[]>> => {
   try {
-    // To check whether user exists with this userName
-    const internAffiliateDetails: Result<IInternAffiliateLinkDetails[] | any> =
-      await internAffiliateLinkRepo.retrieveInternAffiliateLinkDetails();
+    const internAffiliateDetails =
+      await internAffiliateLinkRepo.retrieveAllInternshipAffiliateLinksCreatedByAnEmployee(employee_id);
 
     if (internAffiliateDetails.isError()) {
       throw internAffiliateDetails.error;
@@ -48,57 +52,65 @@ export const retrieveInternAffiliateLinkDetails = async () => {
 
     return Result.ok(internAffiliateDetails.data);
   } catch (error) {
-    // logging the error
-    logger.error(`at: "controllers/intern/retrieveInternAffiliateLinkDetails" => ${JSON.stringify(error)}\n${error}`);
+    logger.error(
+      `at: "controllers/intern/retrieveAllInternshipAffiliateLinksCreatedByAnEmployee" => ${JSON.stringify(
+        error,
+      )}\n${error}`,
+    );
 
     // return negative response
-    return Result.error("Error  retrieveInternAffiliateLinkDetails");
+    return Result.error("Error retrieving links created by an employee");
   }
 };
 
-export const retrieveInternAffiliateLinkById = async (id: number) => {
+export const retrieveInternAffiliateLinkById = async (
+  link_id: number,
+): Promise<Result<IInternAffiliateLinkDetails>> => {
   try {
-    // To check whether user exists with this userName
-    const internAffiliateDetails: Result<IInternAffiliateLinkDetails | any> =
-      await internAffiliateLinkRepo.retrieveInternAffiliateLinkById(id);
+    const internAffiliateDetails = await internAffiliateLinkRepo.retrieveInternAffiliateLinkById(link_id);
 
     if (internAffiliateDetails.isError()) {
       throw internAffiliateDetails.error;
     }
 
-    return Result.ok(internAffiliateDetails.data);
-  } catch (error) {
-    // logging the error
-    logger.error(`at: "controllers/job/retrieveInternAffiliateLinkById" => ${JSON.stringify(error)}\n${error}`);
+    if (!internAffiliateDetails.data) {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Link not found",
+      };
+    }
 
-    // return negative response
-    return Result.error("Error retrieveInternAffiliateLinkById");
+    return Result.ok(internAffiliateDetails.data);
+  } catch (error: any) {
+    logger.error(
+      `at: "controllers/intern-affiliate-link/retrieveInternAffiliateLinkById" => ${JSON.stringify(error)}\n${error}`,
+    );
+
+    return Result.error(error.customMessage ?? "Error retrieveInternAffiliateLinkById");
   }
 };
 
-export const deleteInternAffiliateLinkById = async (id: number) => {
+export const updateInternAffiliateLink = async (link_id: number, data: IUpdateInternAffiliateLink) => {
   try {
-    // To check whether user exists with this userName
-    const internAffiliateDetails: Result = await internAffiliateLinkRepo.deleteInternAffiliateLinkById(id);
+    const internAffiliateDetails = await internAffiliateLinkRepo.updateInternAffiliateLink(link_id, data);
 
     if (internAffiliateDetails.isError()) {
       throw internAffiliateDetails.error;
     }
 
     return Result.ok(internAffiliateDetails.data);
-  } catch (error) {
-    // logging the error
-    logger.error(`at: "controllers/job/deleteInternAffiliateLinkById" => ${JSON.stringify(error)}\n${error}`);
+  } catch (error: any) {
+    logger.error(
+      `at: "controllers/intern-affiliate-link/updateInternAffiliateLink" => ${JSON.stringify(error)}\n${error}`,
+    );
 
-    // return negative response
-    return Result.error("Error while deleting internAffiliateLink");
+    return Result.error(error.customMessage ?? "Error while update internAffiliateLink");
   }
 };
 
-export const updateInternAffiliateLink = async (data: IUpdateInternAffiliateLink) => {
+export const deleteInternAffiliateLinkById = async (link_id: number) => {
   try {
-    // To check whether user exists with this userName
-    const internAffiliateDetails: Result = await internAffiliateLinkRepo.updateInternAffiliateLink(data);
+    const internAffiliateDetails = await internAffiliateLinkRepo.deleteInternAffiliateLinkById(link_id);
 
     if (internAffiliateDetails.isError()) {
       throw internAffiliateDetails.error;
@@ -106,10 +118,10 @@ export const updateInternAffiliateLink = async (data: IUpdateInternAffiliateLink
 
     return Result.ok(internAffiliateDetails.data);
   } catch (error) {
-    // logging the error
-    logger.error(`at: "controllers/job/updateInternAffiliateLink" => ${JSON.stringify(error)}\n${error}`);
+    logger.error(
+      `at: "controllers/intern-affiliate-link/deleteInternAffiliateLinkById" => ${JSON.stringify(error)} \n ${error}`,
+    );
 
-    // return negative response
-    return Result.error("Error while update internAffiliateLink");
+    return Result.error("Error while deleting deleteInternAffiliateLinkById");
   }
 };

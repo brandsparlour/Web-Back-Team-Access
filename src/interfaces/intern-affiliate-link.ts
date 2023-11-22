@@ -4,17 +4,16 @@ export interface ICreateInternAffiliateLink {
   job_details: string;
   link: string;
   is_active?: boolean;
-  created_at?: string;
-  updated_at?: string;
 }
 
 export interface IInternAffiliateLinkDetails extends ICreateInternAffiliateLink {
   link_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IUpdateInternAffiliateLink {
   job_details: string;
   link: string;
-  company_id: number;
-  link_id: number;
+  is_active: boolean;
 }

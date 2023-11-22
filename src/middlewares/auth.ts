@@ -59,3 +59,45 @@ export const verifyAdmin = (req: Request, res: Response, next: NextFunction) => 
 
   next();
 };
+
+export const verifyEmployee = (req: Request, res: Response, next: NextFunction) => {
+  const tokenValidationResult = validateJWTToken(req);
+
+  if (tokenValidationResult.isError()) {
+    return next(tokenValidationResult.error);
+  }
+
+  const decodedToken = tokenValidationResult.data as IUserDetails;
+
+  if (![UserTypes.ADMIN, UserTypes.EMPLOYEE].includes(decodedToken.user_type)) {
+    return next({
+      statusCode: STATUS.UNAUTHORIZED,
+      customMessage: "Oops! Access Denied. It seems you need ADMIN or Employee privileges to perform this action.",
+    });
+  }
+
+  req.user = { ...req.user, ...decodedToken };
+
+  next();
+};
+
+export const verifyIntern = (req: Request, res: Response, next: NextFunction) => {
+  const tokenValidationResult = validateJWTToken(req);
+
+  if (tokenValidationResult.isError()) {
+    return next(tokenValidationResult.error);
+  }
+
+  const decodedToken = tokenValidationResult.data as IUserDetails;
+
+  if (decodedToken.user_type !== UserTypes.INTERN) {
+    return next({
+      statusCode: STATUS.UNAUTHORIZED,
+      customMessage: "Oops! Access Denied. It seems you need INTERN privileges to perform this action.",
+    });
+  }
+
+  req.user = { ...req.user, ...decodedToken };
+
+  next();
+};

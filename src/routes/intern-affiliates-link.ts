@@ -1,26 +1,34 @@
-import express, { Request, Response, NextFunction } from "express";
-import { CustomError } from "../middlewares/error";
+import express, { NextFunction, Request, Response } from "express";
 import STATUS from "../constants/status-code";
 import * as internAffiliatesLinkController from "../controllers/intern-affiliate-link";
+import { ICreateInternAffiliateLink } from "../interfaces/intern-affiliate-link";
 import { Result } from "../interfaces/result";
-import {
-  ICreateInternAffiliateLink,
-  IInternAffiliateLinkDetails,
-  IUpdateInternAffiliateLink,
-} from "../interfaces/intern-affiliate-link";
+import { verifyEmployee } from "../middlewares/auth";
+import { CustomError } from "../middlewares/error";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/admin", verifyEmployee, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { company_id, created_by, job_details, link, is_active, created_at, updated_at } = req.body;
+    const { employee_id } = req.user;
+
+    if (!employee_id) {
+      const err: CustomError = {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Invalid request",
+      };
+
+      throw err;
+    }
+
+    const { company_id, job_details, link } = req.body;
 
     // validate request body
-    if (!company_id || !created_by || !job_details || !link) {
+    if (!company_id || !job_details || !link) {
       // Throw an error if any parameter is not provided
       const err: CustomError = {
         statusCode: STATUS.BAD_REQUEST,
-        customMessage: `company_id , created_by, job_details, link are required`,
+        customMessage: "company_id , created_by, job_details and link are required",
       };
 
       throw err;
@@ -28,15 +36,13 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
     const data: ICreateInternAffiliateLink = {
       company_id,
-      created_by,
+      created_by: employee_id,
       job_details,
       link,
-      is_active,
-      created_at,
-      updated_at,
+      is_active: true,
     };
 
-    // controller call to save user details
+    // controller call to save link details
     const result: Result = await internAffiliatesLinkController.addInternAffiliateLink(data);
     if (result.isError()) {
       throw result.error;
@@ -52,17 +58,53 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/employee/:employee_id", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isCompanyExists: Result<IInternAffiliateLinkDetails[]> =
-      await internAffiliatesLinkController.retrieveInternAffiliateLinkDetails();
+    const { employee_id } = req.params;
+
+    if (!employee_id || employee_id === "undefined") {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Employee id is required",
+      };
+    }
+
+    const result = await internAffiliatesLinkController.retrieveAllInternshipAffiliateLinksCreatedByAnEmployee(
+      parseInt(employee_id),
+    );
+    if (result.isError()) {
+      throw result.error;
+    }
+
+    res.status(STATUS.OK).json({
+      status: STATUS.OK,
+      message: "Getting all intern affiliate links created by an employee",
+      data: result.data,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/:link_id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { link_id } = req.params;
+
+    if (!link_id || link_id === "undefined") {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Link id is required",
+      };
+    }
+
+    const isCompanyExists = await internAffiliatesLinkController.retrieveInternAffiliateLinkById(parseInt(link_id));
     if (isCompanyExists.isError()) {
       throw isCompanyExists.error;
     }
 
     res.status(STATUS.OK).json({
       status: STATUS.OK,
-      message: "Getting intern details",
+      message: "retrieved intern affiliate link details",
       data: isCompanyExists.data,
     });
   } catch (error) {
@@ -70,48 +112,29 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.put("/:link_id", verifyEmployee, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isCompanyExists: Result<IInternAffiliateLinkDetails> =
-      await internAffiliatesLinkController.retrieveInternAffiliateLinkById(parseInt(req.params.id));
-    if (isCompanyExists.isError()) {
-      throw isCompanyExists.error;
+    const { link_id } = req.params;
+
+    if (!link_id || link_id === "undefined") {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Link id is required",
+      };
     }
 
-    res.status(STATUS.OK).json({
-      status: STATUS.OK,
-      message: "Getting intern details",
-      data: isCompanyExists.data,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.put("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { job_details, link, company_id, link_id } = req.body;
-
-    // validate request body
-    if (!company_id || !job_details || !link_id || !link) {
+    // validate if request body contains anything to update
+    if (!Object.keys(req.body).length) {
       // Throw an error if any parameter is not provided
       const err: CustomError = {
         statusCode: STATUS.BAD_REQUEST,
-        customMessage: `company_id , link_id, job_details, link are required`,
+        customMessage: "Nothing to update.",
       };
 
       throw err;
     }
 
-    const data: IUpdateInternAffiliateLink = {
-      job_details,
-      link,
-      company_id,
-      link_id,
-    };
-
-    // controller call to save user details
-    const result: Result = await internAffiliatesLinkController.updateInternAffiliateLink(data);
+    const result = await internAffiliatesLinkController.updateInternAffiliateLink(parseInt(link_id), req.body);
     if (result.isError()) {
       throw result.error;
     }
@@ -126,16 +149,25 @@ router.put("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:link_id", verifyEmployee, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isCompanyExists: Result = await internAffiliatesLinkController.deleteInternAffiliateLinkById(parseInt(req.params.id));
-    if (isCompanyExists.isError()) {
-      throw isCompanyExists.error;
+    const { link_id } = req.params;
+
+    if (!link_id || link_id === "undefined") {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Link id is required",
+      };
+    }
+
+    const result = await internAffiliatesLinkController.deleteInternAffiliateLinkById(parseInt(link_id));
+    if (result.isError()) {
+      throw result.error;
     }
 
     res.status(STATUS.OK).json({
       status: STATUS.OK,
-      message: isCompanyExists.data,
+      message: result.data,
     });
   } catch (error) {
     next(error);
