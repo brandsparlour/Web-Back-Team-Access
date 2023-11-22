@@ -4,6 +4,7 @@ import { generateJWTToken } from "../helpers/jwt";
 import { Result } from "../interfaces/result";
 import { ICreateUser, IUserDetails, IUserLoginRes, UserTypes } from "../interfaces/user";
 import { fetchEmployeeDetailsByUserId } from "../repositories/employee";
+import { retrieveInternDetailsByUserId } from "../repositories/intern";
 import * as userRepo from "../repositories/user";
 import logger from "../utils/logger";
 
@@ -67,37 +68,64 @@ export const loginUser = async (
       };
     }
 
-    const token = generateJWTToken(userDetailsWithoutPassword);
+    const userTypeDetails: any = {};
+
+    switch (userDetailsWithoutPassword.user_type) {
+      case UserTypes.EMPLOYEE: {
+        const employeeDetailsRes = await fetchEmployeeDetailsByUserId(userDetailsWithoutPassword.user_id);
+
+        if (employeeDetailsRes.isError()) {
+          throw employeeDetailsRes.error;
+        }
+
+        if (!employeeDetailsRes.data) {
+          throw {
+            statusCode: STATUS.BAD_REQUEST,
+            customMessage: "Employee details not found",
+          };
+        }
+
+        userTypeDetails["employee_id"] = employeeDetailsRes.data!.employee_id;
+
+        break;
+      }
+
+      case UserTypes.INTERN: {
+        const interDetailsRes = await retrieveInternDetailsByUserId(userDetailsWithoutPassword.user_id);
+
+        if (interDetailsRes.isError()) {
+          throw interDetailsRes.error;
+        }
+
+        if (!interDetailsRes.data) {
+          throw {
+            statusCode: STATUS.BAD_REQUEST,
+            customMessage: "Intern details not found",
+          };
+        }
+
+        userTypeDetails["intern_id"] = interDetailsRes.data!.intern_id;
+        userTypeDetails["payment_status"] = interDetailsRes.data!.payment_status;
+
+        break;
+      }
+    }
+
+    const token = generateJWTToken({ ...userDetailsWithoutPassword, ...userTypeDetails });
 
     const result: IUserLoginRes = {
       token,
       userDetails: userDetailsWithoutPassword,
+      ...userTypeDetails,
     };
 
-    if (userDetailsWithoutPassword.user_type === UserTypes.EMPLOYEE) {
-      const employeeDetailsRes = await fetchEmployeeDetailsByUserId(userDetailsWithoutPassword.user_id);
-
-      if (employeeDetailsRes.isError()) {
-        throw employeeDetailsRes.error;
-      }
-
-      if (!employeeDetailsRes.data) {
-        throw {
-          statusCode: STATUS.BAD_REQUEST,
-          customMessage: "Employee details not found",
-        };
-      }
-
-      result.employee_id = employeeDetailsRes.data!.employee_id;
-    }
-
     return Result.ok(result);
-  } catch (error) {
+  } catch (error: any) {
     // logging the error
     logger.error(`at: "controllers/users/loginUser" => ${JSON.stringify(error)}\n${error}`);
 
     // return negative response
-    return Result.error("Error fetching user details");
+    return Result.error(error.customMessage ?? "Error fetching user details");
   }
 };
 

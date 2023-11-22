@@ -1,28 +1,22 @@
-import { Result } from "../interfaces/result";
-import logger from "../utils/logger";
-import { getDbConnection, query, releaseDbConnection } from "../db_init/db";
 import { PoolConnection } from "mysql";
+import STATUS from "../constants/status-code";
+import { getDbConnection, query, releaseDbConnection } from "../db_init/db";
 import {
   ICreateInternAffiliateLink,
   IInternAffiliateLinkDetails,
   IUpdateInternAffiliateLink,
 } from "../interfaces/intern-affiliate-link";
+import { Result } from "../interfaces/result";
+import logger from "../utils/logger";
 
-export const addInternAffiliateLink = async (data: ICreateInternAffiliateLink): Promise<Result> => {
+export const addInternAffiliateLink = async (
+  data: ICreateInternAffiliateLink,
+): Promise<Result<{ link_id: number }>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const internAffiliateData = {
-      company_id: data.company_id,
-      created_by: data.created_by,
-      job_details: data.job_details,
-      link: data.link,
-      is_active: data.is_active,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-    };
-    const [results] = await query(connection, "INSERT INTO internAffiliateLinks SET ?", internAffiliateData);
+    const result = await query(connection, "INSERT INTO internAffiliateLinks SET ?", data);
 
-    return Result.ok(results.insertId);
+    return Result.ok({ link_id: result.insertId });
   } catch (err) {
     logger.error(`at: repositories/intern/addInternAffiliateLink => ${err} \n ${JSON.stringify(err)}`);
 
@@ -32,48 +26,52 @@ export const addInternAffiliateLink = async (data: ICreateInternAffiliateLink): 
   }
 };
 
-export const retrieveInternAffiliateLinkDetails = async (): Promise<Result<IInternAffiliateLinkDetails[]>> => {
+export const retrieveAllInternshipAffiliateLinksCreatedByAnEmployee = async (
+  employee_id: number,
+): Promise<Result<IInternAffiliateLinkDetails[]>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IInternAffiliateLinkDetails[] = await query(connection, "SELECT * from internAffiliateLinks");
+    const result = await query(connection, "SELECT * from internAffiliateLinks where created_by = ?", [employee_id]);
 
     return Result.ok(result);
   } catch (err) {
-    logger.error(`at: repositories/intern/retrieveInternAffiliateLinkDetails => ${err} \n ${JSON.stringify(err)}`);
+    logger.error(
+      `at: repositories/intern/retrieveAllInternshipAffiliateLinksCreatedByAnEmployee => ${JSON.stringify(
+        err,
+      )} \n  ${err}`,
+    );
 
-    return Result.error(`Error retrieveInternAffiliateLinkDetails => ${err}`);
+    return Result.error(`Error retrieving intern affiliate links => ${err}`);
   } finally {
     releaseDbConnection(connection);
   }
 };
 
-export const retrieveInternAffiliateLinkById = async (id: number): Promise<Result<IInternAffiliateLinkDetails>> => {
+export const retrieveInternAffiliateLinkById = async (
+  link_id: number,
+): Promise<Result<IInternAffiliateLinkDetails>> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    const result: IInternAffiliateLinkDetails[] = await query(
-      connection,
-      "SELECT * from internAffiliateLinks where company_id = ?",
-      [id],
-    );
+    const result = await query(connection, "SELECT * from internAffiliateLinks where link_id = ?", [link_id]);
 
     return Result.ok(result[0]);
   } catch (err) {
-    logger.error(`at: repositories/intern/retrieveInternAffiliateLinkById => ${err} \n ${JSON.stringify(err)}`);
+    logger.error(`at: repositories/intern/retrieveInternAffiliateLinkById => ${JSON.stringify(err)} \n  ${err}`);
 
-    return Result.error(`Error retrieveInternAffiliateLinkById => ${err}`);
+    return Result.error(`Error retrieving affiliate link details => ${err}`);
   } finally {
     releaseDbConnection(connection);
   }
 };
 
-export const deleteInternAffiliateLinkById = async (id: number): Promise<Result> => {
+export const deleteInternAffiliateLinkById = async (link_id: number): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query(connection, "Delete from internAffiliateLinks where link_id = ?", [id]);
+    await query(connection, "Delete from internAffiliateLinks where link_id = ?", [link_id]);
 
-    return Result.ok("Delete internAffiliateLink successfully");
+    return Result.ok("intern affiliate link deleted successfully");
   } catch (err) {
-    logger.error(`at: repositories/intern/deleteInternAffiliateLinkById => ${err} \n ${JSON.stringify(err)}`);
+    logger.error(`at: repositories/intern/deleteInternAffiliateLinkById => ${JSON.stringify(err)} \n  ${err}`);
 
     return Result.error(`Error while delete a intern affiliate link => ${err}`);
   } finally {
@@ -81,20 +79,30 @@ export const deleteInternAffiliateLinkById = async (id: number): Promise<Result>
   }
 };
 
-export const updateInternAffiliateLink = async (data: IUpdateInternAffiliateLink): Promise<Result> => {
+export const updateInternAffiliateLink = async (link_id: number, data: IUpdateInternAffiliateLink): Promise<Result> => {
   const connection: PoolConnection = await getDbConnection();
   try {
-    await query(
-      connection,
-      "UPDATE internAffiliateLinks SET job_details = ?, link = ? WHERE company_id = ? and link_id = ?",
-      [data.job_details, data.link, data.company_id, data.link_id],
-    );
+    const updateSql =
+      "UPDATE InternAffiliateLinks SET " +
+      Object.keys(data)
+        .map((key) => ` ${key} = ? `)
+        .join(",") +
+      " WHERE link_id = ?";
 
-    return Result.ok("Update internAffiliateLink successfully");
-  } catch (err) {
-    logger.error(`at: repositories/intern/updateInternAffiliateLink => ${err} \n ${JSON.stringify(err)}`);
+    const result = await query(connection, updateSql, [...Object.values(data), link_id]);
 
-    return Result.error(`Error while update a intern affiliate link => ${err}`);
+    if (!result.affectedRows) {
+      throw {
+        statusCode: STATUS.BAD_REQUEST,
+        customMessage: "Link not found",
+      };
+    }
+
+    return Result.ok("Intern affiliate link updated successfully.");
+  } catch (err: any) {
+    logger.error(`at: repositories/intern/updateInternAffiliateLink => ${JSON.stringify(err)} \n  ${err}`);
+
+    return Result.error(err.customMessage ?? `Error while update an intern affiliate link => ${err}`);
   } finally {
     releaseDbConnection(connection);
   }
