@@ -1,13 +1,14 @@
-import express, { Request, Response, NextFunction } from "express";
-import { CustomError } from "../middlewares/error";
+import express, { NextFunction, Request, Response } from "express";
 import STATUS from "../constants/status-code";
 import * as eventController from "../controllers/event";
-import { Result } from "../interfaces/result";
 import { ICreateEvent, IEventDetails } from "../interfaces/event";
+import { Result } from "../interfaces/result";
+import { verifyEmployee } from "../middlewares/auth";
+import { CustomError } from "../middlewares/error";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", verifyEmployee, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
       company_id,
@@ -134,9 +135,7 @@ router.get("/events-by-month-year/:year/:month", async (req: Request, res: Respo
 
 router.delete("/:event_id", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const isEventExists: Result<IEventDetails[]> = await eventController.deleteEventById(
-      parseInt(req.params.event_id)
-    );
+    const isEventExists: Result<IEventDetails[]> = await eventController.deleteEventById(parseInt(req.params.event_id));
     if (isEventExists.isError()) {
       throw isEventExists.error;
     }

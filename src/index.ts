@@ -13,27 +13,27 @@ import logger, { httpLogger } from "./utils/logger";
 
 dotenv.config();
 
+import assets from "./routes/assets";
+import cart from "./routes/cart";
 import company from "./routes/company";
 import employee from "./routes/employee";
 import event from "./routes/event";
+import eventParticipant from "./routes/event-participant";
 import healthcheck from "./routes/healthcheck";
 import intern from "./routes/intern";
 import internAffiliateLink from "./routes/intern-affiliates-link";
 import internship from "./routes/internship";
 import job from "./routes/job";
 import payment from "./routes/payment";
-import role from "./routes/role";
-import user from "./routes/user";
-import vacancy from "./routes/vacancy";
 import product from "./routes/product";
 import productBrand from "./routes/product-brand";
 import productCategory from "./routes/product-category";
 import productReview from "./routes/product-review";
 import productWishlist from "./routes/product-wishlist";
 import promotionPlan from "./routes/promotion-plan";
-import eventParticipant from "./routes/event-participant";
-import cart from "./routes/cart";
-
+import role from "./routes/role";
+import user from "./routes/user";
+import vacancy from "./routes/vacancy";
 
 // In case of production environment, disable console logs
 if (process.env.NODE_ENV === "production") {
@@ -91,6 +91,7 @@ app.use("/internship", internship);
 app.use("/intern-affiliate-link", internAffiliateLink);
 app.use("/intern", intern);
 app.use("/payment", payment);
+app.use("/assets", assets);
 app.use("/event", event);
 app.use("/job", job);
 app.use("/vacancy", vacancy);
@@ -99,11 +100,10 @@ app.use("/product", product);
 app.use("/product-brand", productBrand);
 app.use("/product-category", productCategory);
 app.use("/product-review", productReview);
-app.use("/product-wishlist",productWishlist);
-app.use("/promotion/plan",promotionPlan);
-app.use("/event-participant",eventParticipant);
+app.use("/product-wishlist", productWishlist);
+app.use("/promotion/plan", promotionPlan);
+app.use("/event-participant", eventParticipant);
 app.use("/cart", cart);
-
 
 // Express error middleware
 app.use(error);
