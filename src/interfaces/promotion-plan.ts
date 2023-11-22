@@ -7,8 +7,6 @@ export interface ICreatePromotionPlan{
     features: string,
     customization_options: string,
     availability:'Available'| 'Not Available',
-    created_at?: Date,
-    updated_at?: Date
 }
 
 export interface IPromotionPlan extends ICreatePromotionPlan{

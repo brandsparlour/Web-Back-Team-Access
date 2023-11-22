@@ -24,6 +24,15 @@ import job from "./routes/job";
 import role from "./routes/role";
 import user from "./routes/user";
 import vacancy from "./routes/vacancy";
+import product from "./routes/product";
+import productBrand from "./routes/product-brand";
+import productCategory from "./routes/product-category";
+import productReview from "./routes/product-review";
+import productWishlist from "./routes/product-wishlist";
+import promotionPlan from "./routes/promotion-plan";
+import eventParticipant from "./routes/event-participant";
+import cart from "./routes/cart";
+
 
 // In case of production environment, disable console logs
 if (process.env.NODE_ENV === "production") {
@@ -83,6 +92,16 @@ app.use("/intern", intern);
 app.use("/event", event);
 app.use("/job", job);
 app.use("/vacancy", vacancy);
+app.use("/intern-affiliate-link", internAffiliateLink);
+app.use("/product", product);
+app.use("/product-brand", productBrand);
+app.use("/product-category", productCategory);
+app.use("/product-review", productReview);
+app.use("/product-wishlist",productWishlist);
+app.use("/promotion/plan",promotionPlan);
+app.use("/event-participant",eventParticipant);
+app.use("/cart", cart);
+
 
 // Express error middleware
 app.use(error);

@@ -81,11 +81,11 @@ export const retrieveEventsByGivenMonthAndYear = async (month: number, year: num
   }
 };
 
-export const deleteEventById = async (eventId: number , company_id: number) => {
+export const deleteEventById = async (eventId: number) => {
   try {
     // To check whether user exists with this userName
     const eventDetails: Result = await eventRepo.deleteEventById(
-     eventId, company_id
+     eventId
     );
 
     if (eventDetails.isError()) {
