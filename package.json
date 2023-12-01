@@ -7,7 +7,6 @@
     "prod": "tsc&& pm2 start dist/index.js",
     "build": "tsc",
     "start": "tsc-watch --onSuccess \"node dist/index.js\"",
-    "test": "jest --maxWorkers=2 --openHandlesTimeout=0 --forceExit=true",
     "format": "./node_modules/.bin/prettier --write \"**/*.{ts,tsx,json,js,jsx,html}\""
   },
   "author": "",
