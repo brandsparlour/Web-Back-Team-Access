@@ -59,4 +59,4 @@ jobs:
           app-name: 'front-brands-parlour'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_17971F1AA0A445DA932875A2EE3D34E3 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FE548562ADD641B2B524A2250375741F }}
