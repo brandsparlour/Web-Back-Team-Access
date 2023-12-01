@@ -101,3 +101,24 @@ export const verifyIntern = (req: Request, res: Response, next: NextFunction) =>
 
   next();
 };
+
+export const verifyCustomer = (req: Request, res: Response, next: NextFunction) => {
+  const tokenValidationResult = validateJWTToken(req);
+
+  if (tokenValidationResult.isError()) {
+    return next(tokenValidationResult.error);
+  }
+
+  const decodedToken = tokenValidationResult.data as IUserDetails;
+
+  if (decodedToken.user_type !== UserTypes.CUSTOMER) {
+    return next({
+      statusCode: STATUS.UNAUTHORIZED,
+      customMessage: "Oops! Access Denied. It seems you need Customer privileges to perform this action.",
+    });
+  }
+
+  req.user = { ...req.user, ...decodedToken };
+
+  next();
+};
