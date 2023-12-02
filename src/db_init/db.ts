@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
-import { FieldInfo, MysqlError, PoolConfig, PoolConnection, createPool } from "mysql";
+import fs from "fs";
+import { MysqlError, PoolConfig, PoolConnection, createPool } from "mysql";
 import logger from "../utils/logger";
 dotenv.config();
 
@@ -14,6 +15,9 @@ const poolOptions: PoolConfig = {
   password: MYSQL_PASSWORD,
   database: MYSQL_DATABASE,
   connectionLimit: 5,
+  ssl: {
+    ca: fs.readFileSync(`${process.cwd()}/BaltimoreCyberTrustRoot.crt.pem`),
+  },
 };
 
 const pool = createPool(poolOptions);
