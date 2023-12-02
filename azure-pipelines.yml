@@ -28,6 +28,18 @@ stages:
       inputs:
         versionSpec: '18.x'  # Updated to use the latest LTS version of Node.js
       displayName: 'Install Node.js'
+    
+    - script: |
+        echo MYSQL_DATABASE=$(MYSQL_DATABASE) >> .env
+        echo MYSQL_HOST=$(MYSQL_HOST) >> .env
+        echo MYSQL_PASSWORD=$(MYSQL_PASSWORD) >> .env
+        echo MYSQL_USER=$(MYSQL_USER) >> .env
+        echo RAZORPAY_KEY_ID=$(RAZORPAY_KEY_ID) >> .env
+        echo RAZORPAY_KEY_SECRET=$(RAZORPAY_KEY_SECRET) >> .env
+        echo WEB_BACK_TEAM_ACCESS_JWT_PRIVATE_SECRET=$(WEB_BACK_TEAM_ACCESS_JWT_PRIVATE_SECRET) >> .env
+        echo WEB_BACK_TEAM_ACCESS_SECRET_HASH_KEY=$(WEB_BACK_TEAM_ACCESS_SECRET_HASH_KEY) >> .env
+
+      displayName: 'Create .env file'
 
     - script: |
         npm install
