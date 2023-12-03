@@ -48,6 +48,9 @@ stages:
               echo RAZORPAY_KEY_SECRET=$(RAZORPAY_KEY_SECRET) >> .env
               echo WEB_BACK_TEAM_ACCESS_JWT_PRIVATE_SECRET=$(WEB_BACK_TEAM_ACCESS_JWT_PRIVATE_SECRET) >> .env
               echo WEB_BACK_TEAM_ACCESS_SECRET_HASH_KEY=$(WEB_BACK_TEAM_ACCESS_SECRET_HASH_KEY) >> .env
+              echo AZURE_CONTAINER_NAME=$(AZURE_CONTAINER_NAME) >> .env
+              echo AZURE_SAS_TOKEN=$(AZURE_SAS_TOKEN) >> .env
+              echo AZURE_STORAGE_ACCOUNT=$(AZURE_STORAGE_ACCOUNT) >> .env
 
             displayName: "Create .env file"
 
