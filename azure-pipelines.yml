@@ -95,3 +95,8 @@ stages:
                     runtimeStack: "NODE|18-lts" # Updated runtime stack
                     package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
                     startUpCommand: "node dist/index.js" # Updated start command to directly use node
+                # Add a script task to print the contents of the .env file
+                - script: |
+                    cat $(Pipeline.Workspace)/drop/$(Build.BuildId)/.env
+                  displayName: "Print .env file content"
+
