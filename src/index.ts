@@ -34,6 +34,7 @@ import promotionPlan from "./routes/promotion-plan";
 import role from "./routes/role";
 import user from "./routes/user";
 import vacancy from "./routes/vacancy";
+import customer from "./routes/customer";
 
 // In case of production environment, disable console logs
 if (process.env.NODE_ENV === "production") {
@@ -104,6 +105,7 @@ app.use("/product-wishlist", productWishlist);
 app.use("/promotion/plan", promotionPlan);
 app.use("/event-participant", eventParticipant);
 app.use("/cart", cart);
+app.use("/customer",customer)
 
 // Express error middleware
 app.use(error);
