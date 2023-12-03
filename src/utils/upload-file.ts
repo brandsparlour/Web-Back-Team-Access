@@ -37,6 +37,8 @@ export const uploadFilesToBlob = async (files: UploadedFile[]): Promise<Result<A
       // upload file
       await blobClient.uploadFile(file.path);
 
+      logger.error("containerName", containerName, "sasToken", sasToken, "storageAccountName", storageAccountName);
+
       const imageURL: string = `https://${storageAccountName}.blob.core.windows.net/${containerName}/${
         imageName + imageType
       }`;
