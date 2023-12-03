@@ -45,10 +45,10 @@ export const uploadFilesToBlob = async (files: UploadedFile[]): Promise<Result<A
 
     return Result.ok(imageUrls);
   } catch (error) {
-    logger.error(`Error uploading files to azure blob storage: => ${JSON.stringify(error)}`);
+    logger.error(`Error uploading files to azure blob storage: => ${JSON.stringify(error)} \n ${error}`);
 
     return Result.error({
-      customMessage: "Something went wrong while uploading assets to azure blob storage.",
+      customMessage: `Something went wrong while uploading assets to azure blob storage. ${error}`,
     });
   }
 };
