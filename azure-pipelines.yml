@@ -1,0 +1,94 @@
+trigger:
+  - main
+
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  azureSubscription: "7b075ec1-b0c1-4a4e-ae29-1717336a9280"
+
+  # Web app name
+  webAppName: "web-back-team-access"
+
+  # Environment name
+  environmentName: "web-back-team-access"
+
+  # Agent VM image name
+  vmImageName: "ubuntu-latest"
+
+stages:
+  - stage: Build
+    displayName: Build stage
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: $(vmImageName)
+
+        steps:
+          - task: DownloadSecureFile@1
+            name: sslCert
+            inputs:
+              secureFile: "BaltimoreCyberTrustRoot.crt.pem"
+
+          - script: |
+              # Move the downloaded file to the root of the working directory
+              mv $(sslCert.secureFilePath) $(Build.SourcesDirectory)/BaltimoreCyberTrustRoot.crt.pem
+            displayName: "Place SSL certificate in working directory"
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "18.x" # Updated to use the latest LTS version of Node.js
+            displayName: "Install Node.js"
+
+          - script: |
+              echo MYSQL_DATABASE=$(MYSQL_DATABASE) >> .env
+              echo MYSQL_HOST=$(MYSQL_HOST) >> .env
+              echo MYSQL_PASSWORD=$(MYSQL_PASSWORD) >> .env
+              echo MYSQL_USER=$(MYSQL_USER) >> .env
+              echo RAZORPAY_KEY_ID=$(RAZORPAY_KEY_ID) >> .env
+              echo RAZORPAY_KEY_SECRET=$(RAZORPAY_KEY_SECRET) >> .env
+              echo WEB_BACK_TEAM_ACCESS_JWT_PRIVATE_SECRET=$(WEB_BACK_TEAM_ACCESS_JWT_PRIVATE_SECRET) >> .env
+              echo WEB_BACK_TEAM_ACCESS_SECRET_HASH_KEY=$(WEB_BACK_TEAM_ACCESS_SECRET_HASH_KEY) >> .env
+
+            displayName: "Create .env file"
+
+          - script: |
+              npm install
+              npm run build --if-present
+              ls -la
+            displayName: "npm install, build and test"
+
+          - task: ArchiveFiles@2
+            displayName: "Archive files"
+            inputs:
+              rootFolderOrFile: "$(Build.SourcesDirectory)" # Change to the directory with your built files
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+              replaceExistingArchive: true
+
+          - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            artifact: drop
+
+  - stage: Deploy
+    displayName: Deploy stage
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy
+        environment: $(environmentName)
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  displayName: "Azure Web App Deploy: web-back-team-access"
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: webAppLinux
+                    appName: $(webAppName)
+                    runtimeStack: "NODE|18-lts" # Updated runtime stack
+                    package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+                    startUpCommand: "node dist/index.js" # Updated start command to directly use node
