@@ -23,7 +23,7 @@ let upload = multer({ storage: storage, limits: { fileSize: 150000000 } });
  * - @accept asset type and files
  * - @returns success message
  */
-router.post("/upload", upload.array("file"), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/upload", upload.array("files"), async (req: Request, res: Response, next: NextFunction) => {
   const files = (req as any).files;
 
   try {
