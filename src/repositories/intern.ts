@@ -10,7 +10,7 @@ export const addIntern = async (data: IStoreInternDetails): Promise<Result<{ int
   try {
     const result = await query(connection, "INSERT INTO Interns SET ?", data);
 
-    return Result.ok(result.insertId);
+    return Result.ok({ intern_id: result.insertId });
   } catch (err) {
     logger.error(`at: repositories/intern/addIntern => ${JSON.stringify(err)} \n  ${err} `);
 

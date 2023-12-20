@@ -5,7 +5,7 @@ import {
   retrieveRazorPayPaymentDetails,
   validateRazorpayPaymentOrder,
 } from "../helpers/payment-channels/razorpay";
-import { InternPaymentStatus } from "../interfaces/intern";
+import { IInternDetails, InternPaymentStatus } from "../interfaces/intern";
 import {
   ICreatePaymentOrder,
   IUpdatePaymentOrder,
@@ -22,6 +22,7 @@ import {
   updatePaymentOrderById,
 } from "../repositories/payment-order";
 import logger from "../utils/logger";
+import { retrieveInternDetailsById } from "./intern";
 
 export const initiatePayment = async (initiatePaymentReq: InitiatePaymentReq) => {
   try {
@@ -50,7 +51,7 @@ export const initiatePayment = async (initiatePaymentReq: InitiatePaymentReq) =>
       throw paymentOrderCreateRes.error;
     }
 
-    const paymentOrderId = paymentOrderCreateRes.data!.order_id;
+    const paymentOrderId = paymentOrderCreateRes.data;
 
     let paymentDetails: Result;
 
@@ -85,7 +86,11 @@ export const initiatePayment = async (initiatePaymentReq: InitiatePaymentReq) =>
   }
 };
 
-export const validateRazorpayPayment = async (orderId: string, paymentId: string, signature: string) => {
+export const validateRazorpayPayment = async (
+  orderId: string,
+  paymentId: string,
+  signature: string,
+): Promise<Result<IInternDetails>> => {
   let paymentOrderId;
 
   try {
@@ -145,6 +150,8 @@ export const validateRazorpayPayment = async (orderId: string, paymentId: string
 
     const paymentOrderDetails = paymentOrderDetailsRes.data!;
 
+    let result;
+
     if (paymentOrderDetails.intern_id) {
       // update intern payment status as paid
       const internPaymentStatusUpdateRes = await updateInternById(paymentOrderDetails.intern_id, {
@@ -154,9 +161,11 @@ export const validateRazorpayPayment = async (orderId: string, paymentId: string
       if (internPaymentStatusUpdateRes.isError()) {
         throw internPaymentStatusUpdateRes.error;
       }
+      const internDetailsRes = await retrieveInternDetailsById(paymentOrderDetails.intern_id);
+      result = internDetailsRes.data;
     }
 
-    return Result.ok();
+    return Result.ok(result!);
   } catch (error) {
     if (paymentOrderId) {
       await updatePaymentOrderById(paymentOrderId, { payment_status: PaymentStatus.FAILED });

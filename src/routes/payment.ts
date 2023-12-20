@@ -4,8 +4,15 @@ import * as paymentController from "../controllers/payment";
 import { PaymentGateways, PaymentOrderFor } from "../interfaces/payment-order";
 import { Result } from "../interfaces/result";
 import { CustomError } from "../middlewares/error";
+import { sendEmail } from "../utils/send-email";
 
 const router = express.Router();
+
+sendEmail({
+  sendTo: "ishaqbux24000@gmail.com",
+  companyId: "2",
+  name: "myName",
+});
 
 router.post("/create-order", async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -62,7 +69,9 @@ router.post("/create-order", async (req: Request, res: Response, next: NextFunct
 
 router.post("/razorpay/validate", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { orderId, paymentId, signature } = req.body;
+    const { orderId, paymentId, signature, email } = req.body;
+
+    console.log("twts", orderId, paymentId, signature);
 
     if (!orderId || !paymentId || !signature) {
       const err: CustomError = {
@@ -73,15 +82,22 @@ router.post("/razorpay/validate", async (req: Request, res: Response, next: Next
       throw err;
     }
 
-    const result: Result = await paymentController.validateRazorpayPayment(orderId, paymentId, signature);
+    const result = await paymentController.validateRazorpayPayment(orderId, paymentId, signature);
     if (result.isError()) {
       throw result.error;
     }
 
+    // send email
+    await sendEmail({
+      sendTo: email,
+      companyId: String(req.headers["company_id"] || ""),
+      name: result.data?.full_name || "",
+    });
+
     res.status(STATUS.OK).json({
       status: STATUS.OK,
       message: "Payment Successful",
-      data: result.data,
+      // data: result.data,
     });
   } catch (error) {
     next(error);

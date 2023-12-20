@@ -91,7 +91,7 @@ CREATE TABLE Interns (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id) REFERENCES Companies(company_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (internship_id) REFERENCES Internships(internship_id)
+    FOREIGN KEY (internship_id) REFERENCES Internships(internship_id),
     FOREIGN KEY (link_id) REFERENCES internAffiliateLinks(link_id),
     FOREIGN KEY (referred_by) REFERENCES Employees(employee_id)
 );
